@@ -1,4 +1,5 @@
 com/jwpaisley/PingResponse.class
+com/jwpaisley/models/Recipe.class
 com/jwpaisley/services/DatabaseService$Holder.class
 com/jwpaisley/controllers/RecipeController.class
 com/jwpaisley/Main.class
