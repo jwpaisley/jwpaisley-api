@@ -6,6 +6,16 @@ CREATE TABLE recipes (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     emoji VARCHAR(10) NOT NULL,
+
+    calories INTEGER,
+    protein INTEGER,
+    fat INTEGER,
+    carbohydrates INTEGER,
+    sugar INTEGER,
+    fiber INTEGER,
+    sodium INTEGER,
+
+    ingredients TEXT[],
     mise_en_place_steps TEXT[],
     instructions TEXT[]
 );

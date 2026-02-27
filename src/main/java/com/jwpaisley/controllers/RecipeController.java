@@ -26,13 +26,25 @@ public class RecipeController {
                     rs.getString("name"),
                     rs.getString("description"),
                     rs.getString("emoji"),
+
+                    rs.getInt("calories"),
+                    rs.getInt("protein"),
+                    rs.getInt("fat"),
+                    rs.getInt("carbohydrates"),
+                    rs.getInt("sugar"),
+                    rs.getInt("fiber"),
+                    rs.getInt("sodium"),
+
+                    Arrays.asList((String[]) rs.getArray("ingredients").getArray()),
                     Arrays.asList((String[]) rs.getArray("mise_en_place_steps").getArray()),
                     Arrays.asList((String[]) rs.getArray("instructions").getArray())
                 );
+                
                 recipes.add(recipe);
             }
         } catch (Exception e) {
-            ctx.status(500).result("Something went wrong.");
+            System.out.println("Error fetching recipes: " + e.getMessage());
+            ctx.status(500).result("Something went wrong!");
         }
 
         ctx.json(recipes);
