@@ -20,6 +20,7 @@ public class Main {
         RecipeController recipeController = new RecipeController();
 
         app.get("/api/recipes", recipeController::getAll);
+        app.get("/api/recipes/{id}", recipeController::get);
         app.post("/api/recipes", recipeController::create);
     }
 }

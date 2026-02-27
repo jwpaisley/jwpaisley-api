@@ -1,5 +1,5 @@
 CREATE TABLE recipes (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
@@ -7,6 +7,7 @@ CREATE TABLE recipes (
     description TEXT,
     emoji VARCHAR(10) NOT NULL,
 
+    servings INTEGER,
     calories INTEGER,
     protein INTEGER,
     fat INTEGER,

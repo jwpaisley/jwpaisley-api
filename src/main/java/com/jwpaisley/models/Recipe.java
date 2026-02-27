@@ -1,13 +1,15 @@
 package com.jwpaisley.models;
 
+import java.util.UUID;
 import java.util.List;
 
 public record Recipe(
-    int id,
+    UUID id,
     String name,
     String description,
     String emoji,
 
+    int servings,
     int calories,
     int protein,
     int fat,
