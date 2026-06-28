@@ -1,7 +1,8 @@
 package com.jwpaisley.models;
 
-import java.util.UUID;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public record Recipe(
     UUID id,
@@ -20,5 +21,8 @@ public record Recipe(
 
     List<String> ingredients,
     List<String> miseEnPlaceSteps,
-    List<String> instructions
+    List<String> instructions,
+
+    String createdAt,
+    String updatedAt
 ) {}

@@ -13,7 +13,7 @@ build:
 
 ## run: Build and run the Javalin server locally using local env vars
 run: build
-	DB_URL=$(DB_URL) DB_USER=$(DB_USER) DB_PASS=$(DB_PASS) \
+	DB_URL=$(NEON_DB_URL) DB_USER=$(NEON_DB_USER) DB_PASS=$(NEON_DB_PASS) \
 	mvn exec:java -Dexec.mainClass='$(MAIN_CLASS)'
 
 ## deploy: Deploy to Cloud Run and set environment variables from your local shell
@@ -21,8 +21,7 @@ deploy:
 	gcloud run deploy $(SERVICE_NAME) \
 		--source . \
 		--region $(REGION) \
-		--set-env-vars="DB_URL=$(CLOUDRUN_DB_URL),DB_USER=$(DB_USER),DB_PASS=$(DB_PASS)" \
-		--add-cloudsql-instances=$(PROJECT_ID):$(REGION):$(DB_INSTANCE)
+		--set-env-vars="DB_URL=$(NEON_DB_URL),DB_USER=$(NEON_DB_USER),DB_PASS=$(NEON_DB_PASS)"
 
 ## help: Show available commands
 help:
