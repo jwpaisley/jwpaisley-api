@@ -3,6 +3,8 @@ package com.jwpaisley;
 import io.javalin.Javalin;
 
 import com.jwpaisley.controllers.BooksController;
+import com.jwpaisley.controllers.PhotoCollectionController;
+import com.jwpaisley.controllers.PhotoController;
 import com.jwpaisley.controllers.RecipeController;
 
 public class Main {
@@ -31,6 +33,22 @@ public class Main {
         app.put("/api/books/{id}", booksController::update);
         app.delete("/api/books/{id}", booksController::delete);
         app.post("/api/book-covers", booksController::uploadCover);
+
+        // PHOTO COLLECTION ROUTES
+        PhotoCollectionController photoCollectionController = new PhotoCollectionController();
+        app.get("/api/photo-collections", photoCollectionController::getAll);
+        app.get("/api/photo-collections/{id}", photoCollectionController::get);
+        app.post("/api/photo-collections", photoCollectionController::create);
+        app.delete("/api/photo-collections/{id}", photoCollectionController::delete);
+
+        // PHOTO ROUTES
+        PhotoController photoController = new PhotoController();
+        app.get("/api/photos", photoController::getAll);
+        app.get("/api/photos/collection/{collectionId}", photoController::getByCollection);
+        app.get("/api/photos/{id}", photoController::get);
+        app.post("/api/photos", photoController::create);
+        app.delete("/api/photos/{id}", photoController::delete);
+        app.post("/api/photo-uploads", photoController::uploadPhoto);
 
         // RECIPES ROUTES
         RecipeController recipeController = new RecipeController();
