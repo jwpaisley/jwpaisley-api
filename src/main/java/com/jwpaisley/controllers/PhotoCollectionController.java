@@ -12,10 +12,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class PhotoCollectionController {
+    private static final int PAGE_SIZE = 5;
 
     public static PhotoCollection photoCollectionFromResultSet(ResultSet rs) throws SQLException {
         return new PhotoCollection(
@@ -33,18 +36,50 @@ public class PhotoCollectionController {
     }
 
     public void getAll(Context ctx) {
+        String pageToken = ctx.queryParam("pageToken");
+        int offset = 0;
+
+        if (pageToken != null && !pageToken.isBlank()) {
+            try {
+                offset = Integer.parseInt(pageToken);
+            } catch (NumberFormatException e) {
+                ctx.status(400).result("Invalid page token");
+                return;
+            }
+        }
+
         List<PhotoCollection> collections = new ArrayList<>();
-        String sql = "SELECT * FROM photo_collections ORDER BY created_at DESC";
+        String sql = """
+            SELECT * FROM photo_collections
+            ORDER BY created_at DESC, id DESC
+            LIMIT ? OFFSET ?
+            """;
         DataSource ds = DatabaseService.getInstance().getDataSource();
 
         try (Connection conn = ds.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            while (rs.next()) {
-                collections.add(photoCollectionFromResultSet(rs));
+            pstmt.setInt(1, PAGE_SIZE + 1);
+            pstmt.setInt(2, offset);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    collections.add(photoCollectionFromResultSet(rs));
+                }
             }
-            ctx.json(collections);
+
+            List<PhotoCollection> pageItems = collections.size() > PAGE_SIZE
+                ? collections.subList(0, PAGE_SIZE)
+                : collections;
+
+            String nextPageToken = collections.size() > PAGE_SIZE
+                ? String.valueOf(offset + PAGE_SIZE)
+                : null;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("items", pageItems);
+            response.put("nextPageToken", nextPageToken);
+            ctx.json(response);
         } catch (SQLException e) {
             handleError(ctx, e);
         }
