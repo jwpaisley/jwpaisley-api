@@ -11,9 +11,12 @@ import io.javalin.http.UploadedFile;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +35,24 @@ public class PhotoController {
             rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
             rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
         );
+    }
+
+    static Date normalizeTakenDate(String takenDate) {
+        if (takenDate == null || takenDate.isBlank()) {
+            return null;
+        }
+
+        String trimmed = takenDate.trim();
+
+        try {
+            return Date.valueOf(trimmed);
+        } catch (IllegalArgumentException ignored) {
+            try {
+                return Date.valueOf(OffsetDateTime.parse(trimmed).toLocalDate().toString());
+            } catch (DateTimeParseException | IllegalArgumentException ignored2) {
+                return null;
+            }
+        }
     }
 
     private void handleError(Context ctx, Exception e) {
@@ -117,11 +138,17 @@ public class PhotoController {
         try (Connection conn = ds.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
+            Date takenDate = normalizeTakenDate(newPhoto.takenDate());
+
             pstmt.setObject(1, newPhoto.collection());
             pstmt.setString(2, newPhoto.image());
             pstmt.setString(3, newPhoto.caption());
             pstmt.setString(4, newPhoto.location());
-            pstmt.setString(5, newPhoto.takenDate());
+            if (takenDate == null) {
+                pstmt.setNull(5, java.sql.Types.DATE);
+            } else {
+                pstmt.setDate(5, takenDate);
+            }
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {

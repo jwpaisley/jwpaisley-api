@@ -6,6 +6,7 @@ public record PhotoCollection(
     UUID id,
     String title,
     String caption,
+    String location,
 
     String createdAt,
     String updatedAt

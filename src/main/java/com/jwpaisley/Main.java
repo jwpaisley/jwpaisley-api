@@ -38,7 +38,9 @@ public class Main {
         PhotoCollectionController photoCollectionController = new PhotoCollectionController();
         app.get("/api/photo-collections", photoCollectionController::getAll);
         app.get("/api/photo-collections/{id}", photoCollectionController::get);
+        app.get("/api/photo-collections/{id}/photos", photoCollectionController::getPhotosForCollection);
         app.post("/api/photo-collections", photoCollectionController::create);
+        app.put("/api/photo-collections/{id}", photoCollectionController::update);
         app.delete("/api/photo-collections/{id}", photoCollectionController::delete);
 
         // PHOTO ROUTES
@@ -48,11 +50,10 @@ public class Main {
         app.get("/api/photos/{id}", photoController::get);
         app.post("/api/photos", photoController::create);
         app.delete("/api/photos/{id}", photoController::delete);
-        app.post("/api/photo-uploads", photoController::uploadPhoto);
+        app.post("/api/photos/upload", photoController::uploadPhoto);
 
         // RECIPES ROUTES
         RecipeController recipeController = new RecipeController();
-
         app.get("/api/recipes", recipeController::getAll);
         app.get("/api/recipes/{id}", recipeController::get);
         app.post("/api/recipes", recipeController::create);
