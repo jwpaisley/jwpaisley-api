@@ -4,6 +4,7 @@ import com.jwpaisley.helpers.AuthHelper;
 import com.jwpaisley.models.Photo;
 import com.jwpaisley.models.PhotoCollection;
 import com.jwpaisley.services.DatabaseService;
+import com.jwpaisley.services.StorageService;
 import io.javalin.http.Context;
 import io.javalin.http.NotFoundResponse;
 
@@ -17,9 +18,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PhotoCollectionController {
     private static final int PAGE_SIZE = 5;
+    private static final String PHOTO_BUCKET = "jwpaisley-photos";
+    private static final Pattern GCS_OBJECT_KEY_PATTERN = Pattern.compile("/jwpaisley-photos/([^/?#]+)");
 
     public static PhotoCollection photoCollectionFromResultSet(ResultSet rs) throws SQLException {
         return new PhotoCollection(
@@ -289,6 +294,16 @@ public class PhotoCollectionController {
             conn.setAutoCommit(false);
 
             try {
+                List<String> imageUrls = new ArrayList<>();
+                try (PreparedStatement selectPhotosStmt = conn.prepareStatement("SELECT image FROM photos WHERE collection = ?::uuid")) {
+                    selectPhotosStmt.setObject(1, id);
+                    try (ResultSet rs = selectPhotosStmt.executeQuery()) {
+                        while (rs.next()) {
+                            imageUrls.add(rs.getString("image"));
+                        }
+                    }
+                }
+
                 try (PreparedStatement deletePhotosStmt = conn.prepareStatement("DELETE FROM photos WHERE collection = ?::uuid")) {
                     deletePhotosStmt.setObject(1, id);
                     deletePhotosStmt.executeUpdate();
@@ -299,6 +314,9 @@ public class PhotoCollectionController {
                     int rowsDeleted = deleteCollectionStmt.executeUpdate();
 
                     if (rowsDeleted > 0) {
+                        for (String imageUrl : imageUrls) {
+                            deletePhotoObjectsFromStorage(imageUrl);
+                        }
                         conn.commit();
                         ctx.status(204);
                     } else {
@@ -312,6 +330,20 @@ public class PhotoCollectionController {
             }
         } catch (SQLException e) {
             handleError(ctx, e);
+        }
+    }
+
+    private void deletePhotoObjectsFromStorage(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return;
+        }
+
+        StorageService storageService = StorageService.getInstance();
+        Matcher matcher = GCS_OBJECT_KEY_PATTERN.matcher(imageUrl);
+        if (matcher.find()) {
+            String objectKey = matcher.group(1);
+            storageService.deleteFile(PHOTO_BUCKET, objectKey);
+            storageService.deleteFile(PHOTO_BUCKET, "thumb-" + objectKey);
         }
     }
 }

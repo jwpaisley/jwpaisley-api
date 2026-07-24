@@ -21,8 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PhotoController {
+    private static final String PHOTO_BUCKET = "jwpaisley-photos";
+    private static final Pattern GCS_OBJECT_KEY_PATTERN = Pattern.compile("/jwpaisley-photos/([^/?#]+)");
 
     public static Photo photoFromResultSet(ResultSet rs) throws SQLException {
         return new Photo(
@@ -169,22 +173,48 @@ public class PhotoController {
         }
 
         UUID id = UUID.fromString(ctx.pathParam("id"));
-        String sql = "DELETE FROM photos WHERE id = ?";
+        String selectSql = "SELECT image FROM photos WHERE id = ?::uuid";
+        String deleteSql = "DELETE FROM photos WHERE id = ?";
         DataSource ds = DatabaseService.getInstance().getDataSource();
 
-        try (Connection conn = ds.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = ds.getConnection()) {
+            String imageUrl = null;
+            try (PreparedStatement selectStmt = conn.prepareStatement(selectSql)) {
+                selectStmt.setObject(1, id);
+                try (ResultSet rs = selectStmt.executeQuery()) {
+                    if (rs.next()) {
+                        imageUrl = rs.getString("image");
+                    }
+                }
+            }
 
-            pstmt.setObject(1, id);
-            int rowsDeleted = pstmt.executeUpdate();
+            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
+                deleteStmt.setObject(1, id);
+                int rowsDeleted = deleteStmt.executeUpdate();
 
-            if (rowsDeleted > 0) {
-                ctx.status(204);
-            } else {
-                throw new NotFoundResponse("Photo not found");
+                if (rowsDeleted > 0) {
+                    deletePhotoObjectsFromStorage(imageUrl);
+                    ctx.status(204);
+                } else {
+                    throw new NotFoundResponse("Photo not found");
+                }
             }
         } catch (SQLException e) {
             handleError(ctx, e);
+        }
+    }
+
+    private void deletePhotoObjectsFromStorage(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return;
+        }
+
+        StorageService storageService = StorageService.getInstance();
+        Matcher matcher = GCS_OBJECT_KEY_PATTERN.matcher(imageUrl);
+        if (matcher.find()) {
+            String objectKey = matcher.group(1);
+            storageService.deleteFile(PHOTO_BUCKET, objectKey);
+            storageService.deleteFile(PHOTO_BUCKET, "thumb-" + objectKey);
         }
     }
 
@@ -199,8 +229,9 @@ public class PhotoController {
         try {
             UploadedFile file = ctx.uploadedFile("photo");
             if (file != null) {
-                String fileUrl = storageService.uploadFile(file, "jwpaisley-photos");
-                ctx.json(Map.of("url", fileUrl));
+                String objectKey = UUID.randomUUID().toString();
+                Map<String, String> uploadResult = storageService.uploadFileWithObjectKey(file, PHOTO_BUCKET, objectKey);
+                ctx.json(uploadResult);
             } else {
                 ctx.status(400).result("No file uploaded");
             }
