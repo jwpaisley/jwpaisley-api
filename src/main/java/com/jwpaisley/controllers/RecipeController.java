@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class RecipeController {
 
@@ -44,17 +46,41 @@ public class RecipeController {
 
     public void getAll(Context ctx) {
         List<Recipe> recipes = new ArrayList<>();
-        String sql = "SELECT * FROM public.recipes ORDER BY created_at DESC";
+        int pageSize = 20;
+        String pageToken = ctx.queryParam("pageToken");
+        String sql = "SELECT * FROM public.recipes ORDER BY created_at DESC LIMIT ?";
+        String sqlWithOffset = "SELECT * FROM public.recipes ORDER BY created_at DESC LIMIT ? OFFSET ?";
         DataSource ds = DatabaseService.getInstance().getDataSource();
 
-        try (Connection conn = ds.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-
-            while (rs.next()) {
-                recipes.add(recipeFromResultSet(rs));
+        try (Connection conn = ds.getConnection()) {
+            int offset = 0;
+            if (pageToken != null && !pageToken.isBlank()) {
+                try {
+                    offset = Integer.parseInt(pageToken) * pageSize;
+                } catch (NumberFormatException ignored) {
+                    offset = 0;
+                }
             }
-            ctx.json(recipes);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(offset > 0 ? sqlWithOffset : sql)) {
+                if (offset > 0) {
+                    pstmt.setInt(1, pageSize);
+                    pstmt.setInt(2, offset);
+                } else {
+                    pstmt.setInt(1, pageSize);
+                }
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        recipes.add(recipeFromResultSet(rs));
+                    }
+                }
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("items", recipes);
+            response.put("nextPageToken", recipes.size() == pageSize ? String.valueOf((offset / pageSize) + 1) : null);
+            ctx.json(response);
         } catch (SQLException e) {
             handleError(ctx, e);
         }
