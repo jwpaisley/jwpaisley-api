@@ -38,6 +38,13 @@ public class StorageService {
         return uploadFileWithObjectKey(file, bucketName, UUID.randomUUID().toString()).get("url");
     }
 
+    public String uploadByteArray(byte[] fileBytes, String contentType, String bucketName) throws IOException {
+        if (fileBytes == null || fileBytes.length == 0) {
+            throw new IOException("Image content is empty");
+        }
+        return uploadBytes(bucketName, UUID.randomUUID().toString(), contentType, fileBytes);
+    }
+
     public Map<String, String> uploadFileWithThumbnail(UploadedFile file, String bucketName) throws IOException {
         return uploadFileWithObjectKey(file, bucketName, UUID.randomUUID().toString());
     }

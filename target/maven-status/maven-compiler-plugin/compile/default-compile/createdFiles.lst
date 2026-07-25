@@ -2,12 +2,15 @@ com/jwpaisley/models/Recipe.class
 com/jwpaisley/services/StorageService$Holder.class
 com/jwpaisley/controllers/PhotoController.class
 com/jwpaisley/controllers/RecipeController.class
+com/jwpaisley/models/User.class
 com/jwpaisley/helpers/AuthHelper.class
 com/jwpaisley/PingResponse.class
 com/jwpaisley/models/PhotoCollection.class
 com/jwpaisley/controllers/PhotoCollectionController.class
+com/jwpaisley/helpers/JwtService.class
 com/jwpaisley/services/DatabaseService.class
 com/jwpaisley/models/Photo.class
+com/jwpaisley/controllers/UserController.class
 com/jwpaisley/models/Book.class
 com/jwpaisley/services/StorageService.class
 com/jwpaisley/controllers/BooksController.class

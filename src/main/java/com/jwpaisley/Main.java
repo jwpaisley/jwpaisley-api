@@ -6,6 +6,7 @@ import com.jwpaisley.controllers.BooksController;
 import com.jwpaisley.controllers.PhotoCollectionController;
 import com.jwpaisley.controllers.PhotoController;
 import com.jwpaisley.controllers.RecipeController;
+import com.jwpaisley.controllers.UserController;
 
 public class Main {
     public static void main(String[] args) {
@@ -52,6 +53,16 @@ public class Main {
         app.put("/api/photos/{id}", photoController::update);
         app.delete("/api/photos/{id}", photoController::delete);
         app.post("/api/photos/upload", photoController::uploadPhoto);
+
+        // AUTH / USER ROUTES
+        UserController userController = new UserController();
+        app.post("/api/auth/login", userController::login);
+        app.get("/api/users", userController::getAll);
+        app.get("/api/users/{id}", userController::get);
+        app.post("/api/users", userController::create);
+        app.put("/api/users/{id}", userController::update);
+        app.delete("/api/users/{id}", userController::delete);
+        app.post("/api/users/profile-pic", userController::uploadProfilePic);
 
         // RECIPES ROUTES
         RecipeController recipeController = new RecipeController();
