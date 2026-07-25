@@ -166,6 +166,51 @@ public class PhotoController {
         }
     }
 
+    public void update(Context ctx) {
+        if (!AuthHelper.validateOAuthToken(ctx) || !AuthHelper.isAdmin(ctx)) {
+            ctx.status(401).result("Unauthorized");
+            return;
+        }
+
+        UUID id = UUID.fromString(ctx.pathParam("id"));
+        Photo updatedPhoto = ctx.bodyAsClass(Photo.class);
+        String sql = """
+            UPDATE photos
+            SET collection = ?, image = ?, caption = ?, location = ?, taken_date = ?
+            WHERE id = ?::uuid
+            RETURNING *;
+        """;
+        DataSource ds = DatabaseService.getInstance().getDataSource();
+
+        try (Connection conn = ds.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            Date takenDate = normalizeTakenDate(updatedPhoto.takenDate());
+
+            pstmt.setObject(1, updatedPhoto.collection());
+            pstmt.setString(2, updatedPhoto.image());
+            pstmt.setString(3, updatedPhoto.caption());
+            pstmt.setString(4, updatedPhoto.location());
+            if (takenDate == null) {
+                pstmt.setNull(5, java.sql.Types.DATE);
+            } else {
+                pstmt.setDate(5, takenDate);
+            }
+            pstmt.setObject(6, id);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    ctx.json(photoFromResultSet(rs));
+                } else {
+                    throw new NotFoundResponse("Photo not found");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Database error: " + e.getMessage());
+            ctx.status(500).result("Error updating photo in the archive");
+        }
+    }
+
     public void delete(Context ctx) {
         if (!AuthHelper.validateOAuthToken(ctx) || !AuthHelper.isAdmin(ctx)) {
             ctx.status(401).result("Unauthorized");

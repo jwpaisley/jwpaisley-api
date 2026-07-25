@@ -49,6 +49,7 @@ public class Main {
         app.get("/api/photos/collection/{collectionId}", photoController::getByCollection);
         app.get("/api/photos/{id}", photoController::get);
         app.post("/api/photos", photoController::create);
+        app.put("/api/photos/{id}", photoController::update);
         app.delete("/api/photos/{id}", photoController::delete);
         app.post("/api/photos/upload", photoController::uploadPhoto);
 
