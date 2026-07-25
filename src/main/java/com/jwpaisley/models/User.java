@@ -8,6 +8,7 @@ public record User(
     String lastName,
     String emailAddress,
     String profilePictureUrl,
+    Integer coins,
     String lastLogin,
     String createdAt,
     String updatedAt

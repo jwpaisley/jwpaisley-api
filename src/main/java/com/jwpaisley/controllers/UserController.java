@@ -39,6 +39,7 @@ public class UserController {
             rs.getString("last_name"),
             rs.getString("email_address"),
             rs.getString("profile_picture_url"),
+            rs.getObject("coins", Integer.class),
             rs.getTimestamp("last_login") != null ? rs.getTimestamp("last_login").toString() : null,
             rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
             rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
@@ -335,6 +336,7 @@ public class UserController {
             claims.put("email", existingUser.emailAddress());
             claims.put("firstName", existingUser.firstName());
             claims.put("lastName", existingUser.lastName());
+            claims.put("coins", existingUser.coins());
             claims.put("isAdmin", isAdmin);
             String token = jwtService.createToken(claims, Duration.ofDays(7));
 

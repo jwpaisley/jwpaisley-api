@@ -4,6 +4,7 @@ CREATE TABLE users (
     last_name TEXT NOT NULL,
     email_address TEXT NOT NULL UNIQUE,
     profile_picture_url TEXT,
+    coins INT DEFAULT 500,
     last_login TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
