@@ -1,3 +1,4 @@
+/home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/CommentResourceType.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/Photo.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/PhotoController.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/helpers/AuthHelper.java
@@ -11,5 +12,7 @@
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/services/DatabaseService.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/RecipeController.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/BooksController.java
+/home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/Comment.java
+/home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/CommentController.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/Recipe.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/Book.java

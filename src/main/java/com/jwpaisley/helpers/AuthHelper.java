@@ -29,13 +29,30 @@ public class AuthHelper {
         .build();
 
     public static boolean validateOAuthToken(Context ctx) {
+        return validateOAuthToken(ctx, null);
+    }
+
+    public static boolean validateOAuthToken(Context ctx, StringBuilder failureReason) {
         String authHeader = ctx.header("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || authHeader.isBlank()) {
+            if (failureReason != null) {
+                failureReason.append("Missing or invalid Authorization header");
+            }
             System.err.println("Missing or invalid Authorization header");
             return false;
         }
 
-        String token = authHeader.substring(7).trim();
+        String token = authHeader.trim();
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7).trim();
+        }
+
+        if (token.isBlank()) {
+            if (failureReason != null) {
+                failureReason.append("Bearer token is empty");
+            }
+            return false;
+        }
 
         if (JWT_SERVICE.isTokenValid(token)) {
             try {
@@ -47,6 +64,9 @@ public class AuthHelper {
                 ctx.attribute("isAdmin", claims.get("isAdmin", Boolean.class));
                 return true;
             } catch (Exception e) {
+                if (failureReason != null) {
+                    failureReason.append("JWT parsing failed: ").append(e.getMessage());
+                }
                 System.err.println("JWT parsing failed: " + e.getMessage());
                 return false;
             }
@@ -61,7 +81,14 @@ public class AuthHelper {
                 return true;
             }
         } catch (Exception e) {
+            if (failureReason != null) {
+                failureReason.append("Token verification failed: ").append(e.getMessage());
+            }
             System.err.println("Token verification failed: " + e.getMessage());
+        }
+
+        if (failureReason != null && failureReason.length() == 0) {
+            failureReason.append("Token validation failed");
         }
 
         return false;

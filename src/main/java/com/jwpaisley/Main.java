@@ -3,6 +3,7 @@ package com.jwpaisley;
 import io.javalin.Javalin;
 
 import com.jwpaisley.controllers.BooksController;
+import com.jwpaisley.controllers.CommentController;
 import com.jwpaisley.controllers.PhotoCollectionController;
 import com.jwpaisley.controllers.PhotoController;
 import com.jwpaisley.controllers.RecipeController;
@@ -63,6 +64,15 @@ public class Main {
         app.put("/api/users/{id}", userController::update);
         app.delete("/api/users/{id}", userController::delete);
         app.post("/api/users/profile-pic", userController::uploadProfilePic);
+
+        // COMMENTS ROUTES
+        CommentController commentController = new CommentController();
+        app.post("/api/comments", commentController::create);
+        app.get("/api/comments/{id}", commentController::get);
+        app.get("/api/comments/resource/{resourceId}", commentController::getAllForResource);
+        app.get("/api/comments/replies/{parentCommentId}", commentController::getReplies);
+        app.put("/api/comments/{id}", commentController::updateComment);
+        app.delete("/api/comments/{id}", commentController::deleteComment);
 
         // RECIPES ROUTES
         RecipeController recipeController = new RecipeController();
