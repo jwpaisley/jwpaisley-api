@@ -13,7 +13,7 @@ build:
 
 ## run: Build and run the Javalin server locally using local env vars
 run: build
-	DB_URL=$(NEON_DB_URL) DB_USER=$(NEON_DB_USER) DB_PASS=$(NEON_DB_PASS) JWT_SECRET=$(JWT_SECRET) \
+	DB_URL=$(NEON_DB_URL) DB_USER=$(NEON_DB_USER) DB_PASS=$(NEON_DB_PASS) JWT_SECRET=$(JWT_SECRET) TWILIO_ACCOUNT_SID=$(TWILIO_ACCOUNT_SID) TWILIO_AUTH_TOKEN=$(TWILIO_AUTH_TOKEN) TWILIO_FROM_NUMBER=$(TWILIO_FROM_NUMBER) \
 	mvn exec:java -Dexec.mainClass='$(MAIN_CLASS)'
 
 ## deploy: Deploy to Cloud Run and set environment variables from your local shell
@@ -21,7 +21,7 @@ deploy:
 	gcloud run deploy $(SERVICE_NAME) \
 		--source . \
 		--region $(REGION) \
-		--set-env-vars="DB_URL=$(NEON_DB_URL),DB_USER=$(NEON_DB_USER),DB_PASS=$(NEON_DB_PASS),JWT_SECRET=$(JWT_SECRET)"
+		--set-env-vars="DB_URL=$(NEON_DB_URL),DB_USER=$(NEON_DB_USER),DB_PASS=$(NEON_DB_PASS),JWT_SECRET=$(JWT_SECRET),TWILIO_ACCOUNT_SID=$(TWILIO_ACCOUNT_SID),TWILIO_AUTH_TOKEN=$(TWILIO_AUTH_TOKEN),TWILIO_FROM_NUMBER=$(TWILIO_FROM_NUMBER)"
 
 ## help: Show available commands
 help:

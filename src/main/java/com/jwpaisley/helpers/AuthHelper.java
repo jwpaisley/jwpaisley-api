@@ -17,7 +17,7 @@ public class AuthHelper {
     private static final Set<String> ADMIN_EMAILS = Set.of(
         "jacobpaisley97@gmail.com"
     );
-    private static final JwtService JWT_SERVICE = new JwtService(
+    private static final JwtHelper JWT_SERVICE = new JwtHelper(
         System.getenv().getOrDefault("JWT_SECRET", "dummy-secret-for-dev")
     );
 

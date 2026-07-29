@@ -70,6 +70,7 @@ public class Main {
         app.post("/api/comments", commentController::create);
         app.get("/api/comments/{id}", commentController::get);
         app.get("/api/comments/resource/{resourceId}", commentController::getAllForResource);
+        app.get("/api/comments/root/{resourceId}", commentController::getRootComments);
         app.get("/api/comments/replies/{parentCommentId}", commentController::getReplies);
         app.put("/api/comments/{id}", commentController::updateComment);
         app.delete("/api/comments/{id}", commentController::deleteComment);

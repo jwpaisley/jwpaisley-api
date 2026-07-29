@@ -1,6 +1,7 @@
 package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.AuthHelper;
+import com.jwpaisley.helpers.TextHelper;
 import com.jwpaisley.models.Comment;
 import com.jwpaisley.models.CommentResourceType;
 import com.jwpaisley.services.DatabaseService;
@@ -61,6 +62,79 @@ public class CommentController {
             return UUID.fromString(string);
         }
         return null;
+    }
+
+    private String resolveUserDisplayName(Connection conn, UUID userId) throws SQLException {
+        if (userId == null) {
+            return "Someone";
+        }
+
+        String sql = "SELECT first_name, last_name FROM users WHERE id = ?::uuid";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setObject(1, userId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    String firstName = rs.getString("first_name");
+                    String lastName = rs.getString("last_name");
+                    String fullName = String.join(" ",
+                        List.of(firstName != null ? firstName.trim() : "", lastName != null ? lastName.trim() : "").stream()
+                            .filter(value -> !value.isBlank())
+                            .toList());
+                    return fullName.isBlank() ? "Someone" : fullName;
+                }
+            }
+        }
+
+        return "Someone";
+    }
+
+    private UUID resolveCollectionId(Connection conn, CommentResourceType commentType, UUID resourceId) throws SQLException {
+        if (commentType == CommentResourceType.PHOTO_COLLECTION) {
+            return resourceId;
+        }
+
+        if (commentType == CommentResourceType.PHOTO && resourceId != null) {
+            String sql = "SELECT collection FROM photos WHERE id = ?::uuid";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setObject(1, resourceId);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getObject("collection", UUID.class);
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void sendCommentNotification(CommentResourceType commentType, UUID resourceId, UUID userId, UUID collectionId, Connection conn) {
+        if (commentType != CommentResourceType.PHOTO_COLLECTION && commentType != CommentResourceType.PHOTO) {
+            return;
+        }
+
+        if (userId == null) {
+            return;
+        }
+
+        if (collectionId == null) {
+            return;
+        }
+
+        try {
+            String fullName = resolveUserDisplayName(conn, userId);
+            String message;
+            if (commentType == CommentResourceType.PHOTO_COLLECTION) {
+                message = String.format(Locale.ROOT, "%s posted a new comment on a photo collection.\n\nhttps://jwpaisley.com/photography/collections/%s", fullName, collectionId);
+            } else {
+                message = String.format(Locale.ROOT, "%s posted a new comment on a photo.\n\nhttps://jwpaisley.com/photography/collections/%s?photo=%s", fullName, collectionId, resourceId);
+            }
+
+            TextHelper textHelper = new TextHelper();
+            textHelper.sendSms(message, List.of(textHelper.paisleyPhoneNumber));
+        } catch (Exception e) {
+            System.err.println("Unable to send comment notification SMS: " + e.getMessage());
+        }
     }
 
     public void create(Context ctx) {
@@ -151,7 +225,12 @@ public class CommentController {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    ctx.status(201).json(commentFromResultSet(rs));
+                    Comment createdComment = commentFromResultSet(rs);
+                    if (!isReply) {
+                        UUID collectionId = resolveCollectionId(conn, commentType, resourceId);
+                        sendCommentNotification(commentType, resourceId, currentUserId, collectionId, conn);
+                    }
+                    ctx.status(201).json(createdComment);
                 }
             }
         } catch (SQLException e) {
@@ -233,6 +312,59 @@ public class CommentController {
         }
     }
 
+    public void getRootComments(Context ctx) {
+        UUID resourceId = UUID.fromString(ctx.pathParam("resourceId"));
+        String typeValue = ctx.queryParam("commentType");
+        if (typeValue == null || typeValue.isBlank()) {
+            ctx.status(400).result("Missing commentType query parameter");
+            return;
+        }
+
+        int offset;
+        try {
+            offset = parsePageToken(ctx.queryParam("pageToken"));
+        } catch (IllegalArgumentException e) {
+            ctx.status(400).result(e.getMessage());
+            return;
+        }
+
+        CommentResourceType commentType;
+        try {
+            commentType = CommentResourceType.valueOf(typeValue.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            ctx.status(400).result("Invalid comment type");
+            return;
+        }
+
+        List<Comment> comments = new ArrayList<>();
+        String sql = "SELECT * FROM comments WHERE resource_id = ?::uuid AND type = ? AND is_reply = false AND parent_comment IS NULL ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?";
+        DataSource ds = DatabaseService.getInstance().getDataSource();
+
+        try (Connection conn = ds.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setObject(1, resourceId);
+            pstmt.setString(2, commentType.name());
+            pstmt.setInt(3, PAGE_SIZE + 1);
+            pstmt.setInt(4, offset);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    comments.add(commentFromResultSet(rs));
+                }
+            }
+
+            List<Comment> pageItems = comments.size() > PAGE_SIZE ? comments.subList(0, PAGE_SIZE) : comments;
+            String nextPageToken = comments.size() > PAGE_SIZE ? String.valueOf(offset + PAGE_SIZE) : null;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("items", pageItems);
+            response.put("nextPageToken", nextPageToken);
+            ctx.json(response);
+        } catch (SQLException e) {
+            handleError(ctx, e);
+        }
+    }
+
     public void getReplies(Context ctx) {
         UUID parentCommentId = UUID.fromString(ctx.pathParam("parentCommentId"));
         int offset;
@@ -244,7 +376,7 @@ public class CommentController {
         }
 
         List<Comment> comments = new ArrayList<>();
-        String sql = "SELECT * FROM comments WHERE parent_comment = ?::uuid ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT * FROM comments WHERE parent_comment = ?::uuid ORDER BY created_at ASC, id ASC LIMIT ? OFFSET ?";
         DataSource ds = DatabaseService.getInstance().getDataSource();
 
         try (Connection conn = ds.getConnection();
@@ -363,14 +495,27 @@ public class CommentController {
                 }
             }
 
-            String deleteSql = "DELETE FROM comments WHERE id = ?::uuid";
-            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
-                deleteStmt.setObject(1, id);
-                int rowsDeleted = deleteStmt.executeUpdate();
-                if (rowsDeleted > 0) {
-                    ctx.status(204);
-                } else {
-                    throw new NotFoundResponse("Comment not found");
+            String softDeleteSql = """
+                UPDATE comments
+                SET text = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?::uuid
+                RETURNING *;
+            """;
+            try (PreparedStatement updateStmt = conn.prepareStatement(softDeleteSql)) {
+                updateStmt.setString(1, "deleted comment");
+                updateStmt.setObject(2, id);
+                try (ResultSet updateRs = updateStmt.executeQuery()) {
+                    if (!updateRs.next()) {
+                        throw new NotFoundResponse("Comment not found");
+                    }
+
+                    String deleteRepliesSql = "DELETE FROM comments WHERE parent_comment = ?::uuid";
+                    try (PreparedStatement deleteRepliesStmt = conn.prepareStatement(deleteRepliesSql)) {
+                        deleteRepliesStmt.setObject(1, id);
+                        deleteRepliesStmt.executeUpdate();
+                    }
+
+                    ctx.json(commentFromResultSet(updateRs));
                 }
             }
         } catch (SQLException e) {

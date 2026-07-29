@@ -1,7 +1,7 @@
 package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.AuthHelper;
-import com.jwpaisley.helpers.JwtService;
+import com.jwpaisley.helpers.JwtHelper;
 import com.jwpaisley.models.User;
 import com.jwpaisley.services.DatabaseService;
 import com.jwpaisley.services.StorageService;
@@ -30,7 +30,7 @@ import java.util.UUID;
 public class UserController {
     private static final int PAGE_SIZE = 20;
     private static final String PROFILE_BUCKET = "jwpaisley-user-profile-pictures";
-    private final JwtService jwtService = new JwtService(System.getenv().getOrDefault("JWT_SECRET", "dummy-secret-for-dev"));
+    private final JwtHelper jwtService = new JwtHelper(System.getenv().getOrDefault("JWT_SECRET", "dummy-secret-for-dev"));
 
     public static User userFromResultSet(ResultSet rs) throws SQLException {
         return new User(

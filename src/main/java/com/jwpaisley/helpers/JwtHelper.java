@@ -10,10 +10,10 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.Map;
 
-public class JwtService {
+public class JwtHelper {
     private final SecretKey signingKey;
 
-    public JwtService(String secret) {
+    public JwtHelper(String secret) {
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
