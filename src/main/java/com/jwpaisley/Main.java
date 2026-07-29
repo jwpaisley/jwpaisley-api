@@ -7,6 +7,7 @@ import com.jwpaisley.controllers.CommentController;
 import com.jwpaisley.controllers.PhotoCollectionController;
 import com.jwpaisley.controllers.PhotoController;
 import com.jwpaisley.controllers.RecipeController;
+import com.jwpaisley.controllers.RecipeTagController;
 import com.jwpaisley.controllers.UserController;
 
 public class Main {
@@ -82,6 +83,13 @@ public class Main {
         app.post("/api/recipes", recipeController::create);
         app.put("/api/recipes/{id}", recipeController::update);
         app.delete("/api/recipes/{id}", recipeController::delete);
+
+        RecipeTagController recipeTagController = new RecipeTagController();
+        app.get("/api/recipe-tags", recipeTagController::getAll);
+        app.get("/api/recipe-tags/{id}", recipeTagController::get);
+        app.post("/api/recipe-tags", recipeTagController::create);
+        app.put("/api/recipe-tags/{id}", recipeTagController::update);
+        app.delete("/api/recipe-tags/{id}", recipeTagController::delete);
     }
 }
 

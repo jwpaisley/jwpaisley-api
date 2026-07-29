@@ -2,6 +2,7 @@
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/Photo.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/PhotoController.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/helpers/AuthHelper.java
+/home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/RecipeTag.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/PhotoCollectionController.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/PhotoCollection.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/helpers/JwtHelper.java
@@ -10,6 +11,7 @@
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/services/StorageService.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/Main.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/User.java
+/home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/RecipeTagController.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/services/DatabaseService.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/RecipeController.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/BooksController.java

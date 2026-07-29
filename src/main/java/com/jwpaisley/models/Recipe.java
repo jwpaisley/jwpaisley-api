@@ -21,6 +21,7 @@ public record Recipe(
     List<String> ingredients,
     List<String> miseEnPlaceSteps,
     List<String> instructions,
+    List<RecipeTag> recipeTags,
 
     String createdAt,
     String updatedAt
