@@ -38,7 +38,7 @@ public class AuthHelper {
             if (failureReason != null) {
                 failureReason.append("Missing or invalid Authorization header");
             }
-            System.err.println("Missing or invalid Authorization header");
+            LoggingHelper.warning("Missing or invalid Authorization header");
             return false;
         }
 
@@ -67,7 +67,7 @@ public class AuthHelper {
                 if (failureReason != null) {
                     failureReason.append("JWT parsing failed: ").append(e.getMessage());
                 }
-                System.err.println("JWT parsing failed: " + e.getMessage());
+                LoggingHelper.error("JWT parsing failed: " + e.getMessage());
                 return false;
             }
         }
@@ -77,14 +77,14 @@ public class AuthHelper {
             if (idToken != null) {
                 Payload payload = idToken.getPayload();
                 ctx.attribute("email", payload.getEmail());
-                System.out.println("Authenticated user: " + payload.getEmail());
+                LoggingHelper.success("Authenticated user: " + payload.getEmail());
                 return true;
             }
         } catch (Exception e) {
             if (failureReason != null) {
                 failureReason.append("Token verification failed: ").append(e.getMessage());
             }
-            System.err.println("Token verification failed: " + e.getMessage());
+            LoggingHelper.error("Token verification failed: " + e.getMessage());
         }
 
         if (failureReason != null && failureReason.length() == 0) {
@@ -115,13 +115,13 @@ public class AuthHelper {
 
         String email = getCurrentUserEmail(ctx);
         if (email == null) {
-            System.err.println("Email verification failed: No email found in token payload");
+            LoggingHelper.error("Email verification failed: No email found in token payload");
             return false;
         }
 
         boolean isAllowedAdmin = ADMIN_EMAILS.contains(email.toLowerCase(Locale.ROOT));
         if (!isAllowedAdmin) {
-            System.err.println("Unauthorized access attempt by: " + email);
+            LoggingHelper.warning("Unauthorized access attempt by: " + email);
         }
 
         return isAllowedAdmin;

@@ -1,0 +1,42 @@
+package com.jwpaisley.models;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+public record Sailboat(
+    UUID id,
+    String name,
+    String mmsi,
+    String hinCin,
+    String officialNumber,
+    String flagState,
+    String callSign,
+    String make,
+    String manufacturer,
+    String model,
+    Integer yearBuilt,
+    String designer,
+    String hullType,
+    String hullMaterial,
+    String keelType,
+    String rigType,
+    BigDecimal loa,
+    BigDecimal lwl,
+    BigDecimal beamFt,
+    BigDecimal draftMin,
+    BigDecimal draftMax,
+    BigDecimal displacementWeight,
+    BigDecimal ballastWeight,
+    BigDecimal sailArea,
+    String phrfRating,
+    String orcRating,
+    String engineMakeModel,
+    Integer engineHp,
+    BigDecimal fuelCapacityGal,
+    BigDecimal freshwaterCapacityGal,
+    BigDecimal holdingTankCapacityGal,
+    String homePort,
+    String privateEnsignFlagUrl,
+    String createdAt,
+    String updatedAt
+) {}

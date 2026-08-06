@@ -2,12 +2,16 @@ package com.jwpaisley;
 
 import io.javalin.Javalin;
 
+import com.jwpaisley.helpers.LoggingHelper;
 import com.jwpaisley.controllers.BooksController;
 import com.jwpaisley.controllers.CommentController;
 import com.jwpaisley.controllers.PhotoCollectionController;
 import com.jwpaisley.controllers.PhotoController;
 import com.jwpaisley.controllers.RecipeController;
 import com.jwpaisley.controllers.RecipeTagController;
+import com.jwpaisley.controllers.SailingPortsController;
+import com.jwpaisley.controllers.SailboatPhotosController;
+import com.jwpaisley.controllers.SailboatsController;
 import com.jwpaisley.controllers.UserController;
 
 public class Main {
@@ -90,6 +94,31 @@ public class Main {
         app.post("/api/recipe-tags", recipeTagController::create);
         app.put("/api/recipe-tags/{id}", recipeTagController::update);
         app.delete("/api/recipe-tags/{id}", recipeTagController::delete);
+
+        SailingPortsController sailingPortsController = new SailingPortsController();
+        app.get("/api/sailing-ports", sailingPortsController::getAll);
+        app.get("/api/sailing-ports/{id}", sailingPortsController::get);
+        app.post("/api/sailing-ports", sailingPortsController::create);
+        app.put("/api/sailing-ports/{id}", sailingPortsController::update);
+        app.delete("/api/sailing-ports/{id}", sailingPortsController::delete);
+
+        SailboatsController sailboatsController = new SailboatsController();
+        app.get("/api/sailboats", sailboatsController::getAll);
+        app.get("/api/sailboats/{id}", sailboatsController::get);
+        app.post("/api/sailboats", sailboatsController::create);
+        app.put("/api/sailboats/{id}", sailboatsController::update);
+        app.delete("/api/sailboats/{id}", sailboatsController::delete);
+
+        SailboatPhotosController sailboatPhotosController = new SailboatPhotosController();
+        app.get("/api/sailboat-photos", sailboatPhotosController::getAll);
+        app.get("/api/sailboats/{sailboatId}/photos", sailboatPhotosController::getBySailboat);
+        app.get("/api/sailboat-photos/{id}", sailboatPhotosController::get);
+        app.post("/api/sailboat-photos", sailboatPhotosController::create);
+        app.put("/api/sailboat-photos/{id}", sailboatPhotosController::update);
+        app.delete("/api/sailboat-photos/{id}", sailboatPhotosController::delete);
+        app.post("/api/sailboat-photos/upload", sailboatPhotosController::uploadPhoto);
+
+        LoggingHelper.success("api started up on port " + port);
     }
 }
 
