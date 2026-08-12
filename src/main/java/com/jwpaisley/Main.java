@@ -18,6 +18,8 @@ import com.jwpaisley.controllers.SportsPredictionLeaguesController;
 import com.jwpaisley.controllers.SportsPredictionPicksController;
 import com.jwpaisley.controllers.SportsPredictionTeamsController;
 import com.jwpaisley.controllers.UserController;
+import com.jwpaisley.controllers.WheelOptionsController;
+import com.jwpaisley.controllers.WheelSpinsController;
 
 public class Main {
     public static void main(String[] args) {
@@ -162,6 +164,22 @@ public class Main {
         app.post("/api/sports-prediction-picks", sportsPredictionPicksController::create);
         app.put("/api/sports-prediction-picks/{id}", sportsPredictionPicksController::update);
         app.delete("/api/sports-prediction-picks/{id}", sportsPredictionPicksController::delete);
+
+        WheelOptionsController wheelOptionsController = new WheelOptionsController();
+        app.get("/api/wheel-options", wheelOptionsController::getAll);
+        app.get("/api/wheel-options/{id}", wheelOptionsController::get);
+        app.post("/api/wheel-options", wheelOptionsController::create);
+        app.put("/api/wheel-options/{id}", wheelOptionsController::update);
+        app.delete("/api/wheel-options/{id}", wheelOptionsController::delete);
+
+        WheelSpinsController wheelSpinsController = new WheelSpinsController();
+        app.get("/api/wheel-spins", wheelSpinsController::getAll);
+        app.get("/api/wheel-spins/can-spin", wheelSpinsController::canSpinWheel);
+        app.get("/api/wheel-spins/{id}", wheelSpinsController::get);
+        app.post("/api/wheel-spins", wheelSpinsController::create);
+        app.post("/api/wheel-spins/spin", wheelSpinsController::spinWheel);
+        app.put("/api/wheel-spins/{id}", wheelSpinsController::update);
+        app.delete("/api/wheel-spins/{id}", wheelSpinsController::delete);
 
         LoggingHelper.success("api started up on port " + port);
     }
