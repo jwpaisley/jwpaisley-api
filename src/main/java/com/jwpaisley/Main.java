@@ -12,6 +12,11 @@ import com.jwpaisley.controllers.RecipeTagController;
 import com.jwpaisley.controllers.SailingPortsController;
 import com.jwpaisley.controllers.SailboatPhotosController;
 import com.jwpaisley.controllers.SailboatsController;
+import com.jwpaisley.controllers.SportsPredictionFixturesController;
+import com.jwpaisley.controllers.SportsPredictionLeagueParticipantsController;
+import com.jwpaisley.controllers.SportsPredictionLeaguesController;
+import com.jwpaisley.controllers.SportsPredictionPicksController;
+import com.jwpaisley.controllers.SportsPredictionTeamsController;
 import com.jwpaisley.controllers.UserController;
 
 public class Main {
@@ -117,6 +122,44 @@ public class Main {
         app.put("/api/sailboat-photos/{id}", sailboatPhotosController::update);
         app.delete("/api/sailboat-photos/{id}", sailboatPhotosController::delete);
         app.post("/api/sailboat-photos/upload", sailboatPhotosController::uploadPhoto);
+
+        SportsPredictionTeamsController sportsPredictionTeamsController = new SportsPredictionTeamsController();
+        app.get("/api/sports-prediction-teams", sportsPredictionTeamsController::getAll);
+        app.get("/api/sports-prediction-teams/{id}", sportsPredictionTeamsController::get);
+        app.post("/api/sports-prediction-teams", sportsPredictionTeamsController::create);
+        app.put("/api/sports-prediction-teams/{id}", sportsPredictionTeamsController::update);
+        app.delete("/api/sports-prediction-teams/{id}", sportsPredictionTeamsController::delete);
+
+        SportsPredictionLeaguesController sportsPredictionLeaguesController = new SportsPredictionLeaguesController();
+        app.get("/api/sports-prediction-leagues", sportsPredictionLeaguesController::getAll);
+        app.get("/api/sports-prediction-leagues/my", sportsPredictionLeaguesController::getMyLeagues);
+        app.get("/api/sports-prediction-leagues/past", sportsPredictionLeaguesController::getPastLeagues);
+        app.get("/api/sports-prediction-leagues/open", sportsPredictionLeaguesController::getOpenLeagues);
+        app.get("/api/sports-prediction-leagues/{id}", sportsPredictionLeaguesController::get);
+        app.post("/api/sports-prediction-leagues", sportsPredictionLeaguesController::create);
+        app.put("/api/sports-prediction-leagues/{id}", sportsPredictionLeaguesController::update);
+        app.delete("/api/sports-prediction-leagues/{id}", sportsPredictionLeaguesController::delete);
+
+        SportsPredictionFixturesController sportsPredictionFixturesController = new SportsPredictionFixturesController();
+        app.get("/api/sports-prediction-fixtures", sportsPredictionFixturesController::getAll);
+        app.get("/api/sports-prediction-fixtures/{id}", sportsPredictionFixturesController::get);
+        app.post("/api/sports-prediction-fixtures", sportsPredictionFixturesController::create);
+        app.put("/api/sports-prediction-fixtures/{id}", sportsPredictionFixturesController::update);
+        app.delete("/api/sports-prediction-fixtures/{id}", sportsPredictionFixturesController::delete);
+
+        SportsPredictionLeagueParticipantsController sportsPredictionLeagueParticipantsController = new SportsPredictionLeagueParticipantsController();
+        app.get("/api/sports-prediction-league-participants", sportsPredictionLeagueParticipantsController::getAll);
+        app.get("/api/sports-prediction-league-participants/{id}", sportsPredictionLeagueParticipantsController::get);
+        app.post("/api/sports-prediction-league-participants", sportsPredictionLeagueParticipantsController::create);
+        app.put("/api/sports-prediction-league-participants/{id}", sportsPredictionLeagueParticipantsController::update);
+        app.delete("/api/sports-prediction-league-participants/{id}", sportsPredictionLeagueParticipantsController::delete);
+
+        SportsPredictionPicksController sportsPredictionPicksController = new SportsPredictionPicksController();
+        app.get("/api/sports-prediction-picks", sportsPredictionPicksController::getAll);
+        app.get("/api/sports-prediction-picks/{id}", sportsPredictionPicksController::get);
+        app.post("/api/sports-prediction-picks", sportsPredictionPicksController::create);
+        app.put("/api/sports-prediction-picks/{id}", sportsPredictionPicksController::update);
+        app.delete("/api/sports-prediction-picks/{id}", sportsPredictionPicksController::delete);
 
         LoggingHelper.success("api started up on port " + port);
     }
