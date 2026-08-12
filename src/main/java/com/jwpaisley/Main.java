@@ -149,6 +149,7 @@ public class Main {
 
         SportsPredictionLeagueParticipantsController sportsPredictionLeagueParticipantsController = new SportsPredictionLeagueParticipantsController();
         app.get("/api/sports-prediction-league-participants", sportsPredictionLeagueParticipantsController::getAll);
+        app.get("/api/sports-prediction-league-participants/league/{leagueId}", sportsPredictionLeagueParticipantsController::getParticipantsForLeague);
         app.get("/api/sports-prediction-league-participants/{id}", sportsPredictionLeagueParticipantsController::get);
         app.post("/api/sports-prediction-league-participants", sportsPredictionLeagueParticipantsController::create);
         app.put("/api/sports-prediction-league-participants/{id}", sportsPredictionLeagueParticipantsController::update);
