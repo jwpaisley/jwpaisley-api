@@ -157,6 +157,7 @@ public class Main {
 
         SportsPredictionPicksController sportsPredictionPicksController = new SportsPredictionPicksController();
         app.get("/api/sports-prediction-picks", sportsPredictionPicksController::getAll);
+        app.get("/api/sports-prediction-picks/league/{leagueId}/totals", sportsPredictionPicksController::getLeagueUserTotals);
         app.get("/api/sports-prediction-picks/{id}", sportsPredictionPicksController::get);
         app.post("/api/sports-prediction-picks", sportsPredictionPicksController::create);
         app.put("/api/sports-prediction-picks/{id}", sportsPredictionPicksController::update);

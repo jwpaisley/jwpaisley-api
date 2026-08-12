@@ -12,7 +12,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class SportsPredictionPicksController {
@@ -24,6 +26,8 @@ public class SportsPredictionPicksController {
             rs.getObject("fixture_id", UUID.class),
             rs.getObject("selected_team_id", UUID.class),
             rs.getBoolean("is_draw_pick"),
+            rs.getBoolean("is_correct"),
+            rs.getBoolean("is_settled"),
             rs.getDouble("payout_multiplier"),
             rs.getString("status"),
             rs.getInt("coins_awarded"),
@@ -87,8 +91,8 @@ public class SportsPredictionPicksController {
         String sql = """
             INSERT INTO sports_prediction_picks (
                 league_id, user_id, fixture_id, selected_team_id, is_draw_pick,
-                payout_multiplier, status, coins_awarded, points_awarded
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                is_correct, is_settled, payout_multiplier, status, coins_awarded, points_awarded
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *;
         """;
         DataSource ds = DatabaseService.getInstance().getDataSource();
@@ -101,10 +105,12 @@ public class SportsPredictionPicksController {
             pstmt.setObject(3, newPick.fixtureId());
             pstmt.setObject(4, newPick.selectedTeamId());
             pstmt.setBoolean(5, newPick.isDrawPick());
-            pstmt.setDouble(6, newPick.payoutMultiplier());
-            pstmt.setString(7, newPick.status());
-            pstmt.setInt(8, newPick.coinsAwarded());
-            pstmt.setInt(9, newPick.pointsAwarded());
+            pstmt.setBoolean(6, newPick.isCorrect());
+            pstmt.setBoolean(7, newPick.isSettled());
+            pstmt.setDouble(8, newPick.payoutMultiplier());
+            pstmt.setString(9, newPick.status());
+            pstmt.setInt(10, newPick.coinsAwarded());
+            pstmt.setInt(11, newPick.pointsAwarded());
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -127,7 +133,7 @@ public class SportsPredictionPicksController {
         String sql = """
             UPDATE sports_prediction_picks SET
                 league_id = ?, user_id = ?, fixture_id = ?, selected_team_id = ?, is_draw_pick = ?,
-                payout_multiplier = ?, status = ?, coins_awarded = ?, points_awarded = ?
+                is_correct = ?, is_settled = ?, payout_multiplier = ?, status = ?, coins_awarded = ?, points_awarded = ?
             WHERE id = ?::uuid
             RETURNING *;
         """;
@@ -141,11 +147,13 @@ public class SportsPredictionPicksController {
             pstmt.setObject(3, updatedPick.fixtureId());
             pstmt.setObject(4, updatedPick.selectedTeamId());
             pstmt.setBoolean(5, updatedPick.isDrawPick());
-            pstmt.setDouble(6, updatedPick.payoutMultiplier());
-            pstmt.setString(7, updatedPick.status());
-            pstmt.setInt(8, updatedPick.coinsAwarded());
-            pstmt.setInt(9, updatedPick.pointsAwarded());
-            pstmt.setObject(10, id);
+            pstmt.setBoolean(6, updatedPick.isCorrect());
+            pstmt.setBoolean(7, updatedPick.isSettled());
+            pstmt.setDouble(8, updatedPick.payoutMultiplier());
+            pstmt.setString(9, updatedPick.status());
+            pstmt.setInt(10, updatedPick.coinsAwarded());
+            pstmt.setInt(11, updatedPick.pointsAwarded());
+            pstmt.setObject(12, id);
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -154,6 +162,40 @@ public class SportsPredictionPicksController {
                     throw new NotFoundResponse("Sports prediction pick not found");
                 }
             }
+        } catch (SQLException e) {
+            handleError(ctx, e);
+        }
+    }
+
+    public void getLeagueUserTotals(Context ctx) {
+        UUID leagueId = UUID.fromString(ctx.pathParam("leagueId"));
+        String sql = """
+            SELECT user_id, SUM(points_awarded) AS total_points
+            FROM sports_prediction_picks
+            WHERE league_id = ?::uuid
+              AND is_settled = TRUE
+              AND is_correct = TRUE
+            GROUP BY user_id
+            ORDER BY total_points DESC
+        """;
+        DataSource ds = DatabaseService.getInstance().getDataSource();
+        List<Map<String, Object>> totals = new ArrayList<>();
+
+        try (Connection conn = ds.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setObject(1, leagueId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("userId", rs.getObject("user_id", UUID.class));
+                    row.put("totalPoints", rs.getInt("total_points"));
+                    totals.add(row);
+                }
+            }
+
+            ctx.json(totals);
         } catch (SQLException e) {
             handleError(ctx, e);
         }

@@ -5,6 +5,8 @@ CREATE TABLE sports_prediction_picks (
     fixture_id UUID NOT NULL REFERENCES sports_prediction_fixtures (id) ON DELETE CASCADE,
     selected_team_id UUID REFERENCES sports_prediction_teams (id) ON DELETE RESTRICT,
     is_draw_pick BOOLEAN NOT NULL DEFAULT FALSE,
+    is_correct BOOLEAN NOT NULL DEFAULT FALSE,
+    is_settled BOOLEAN NOT NULL DEFAULT FALSE,
     payout_multiplier NUMERIC(6, 2) NOT NULL DEFAULT 0,
     status VARCHAR(50) NOT NULL DEFAULT 'pending',
     coins_awarded INTEGER NOT NULL DEFAULT 0,

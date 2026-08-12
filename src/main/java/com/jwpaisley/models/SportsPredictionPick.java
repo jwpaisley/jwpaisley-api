@@ -9,6 +9,8 @@ public record SportsPredictionPick(
     UUID fixtureId,
     UUID selectedTeamId,
     boolean isDrawPick,
+    boolean isCorrect,
+    boolean isSettled,
     double payoutMultiplier,
     String status,
     int coinsAwarded,
