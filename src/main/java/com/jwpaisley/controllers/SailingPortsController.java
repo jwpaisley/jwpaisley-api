@@ -2,6 +2,7 @@ package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.LoggingHelper;
 import com.jwpaisley.helpers.AuthHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import com.jwpaisley.models.SailingPort;
 import com.jwpaisley.models.SailingPortConditions;
 import com.jwpaisley.models.SailingPortWithConditions;
@@ -44,8 +45,8 @@ public class SailingPortsController {
             rs.getString("nws_office"),
             rs.getObject("nws_grid_x", Integer.class),
             rs.getObject("nws_grid_y", Integer.class),
-            rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
-            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
 

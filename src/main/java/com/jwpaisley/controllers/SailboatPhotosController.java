@@ -1,6 +1,7 @@
 package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.AuthHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import com.jwpaisley.models.SailboatPhoto;
 import com.jwpaisley.services.DatabaseService;
 import com.jwpaisley.services.StorageService;
@@ -33,8 +34,8 @@ public class SailboatPhotosController {
             rs.getString("photo_url"),
             rs.getBoolean("show_in_carousel"),
             rs.getString("caption"),
-            rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
-            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
 

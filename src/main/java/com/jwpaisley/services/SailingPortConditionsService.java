@@ -105,7 +105,6 @@ public class SailingPortConditionsService {
                 marineAlert,
                 Instant.now().toString()
             );
-            LoggingHelper.info("fetched sailing conditions {" + conditions + "} for port <" + port.name().toLowerCase() + ">");
             return conditions;
         } catch (Exception e) {
             LoggingHelper.debug("failed to fetch conditions for port " + port.name().toLowerCase() + ": " + e.getMessage().toLowerCase());

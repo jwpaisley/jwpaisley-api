@@ -2,6 +2,7 @@ package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.AuthHelper;
 import com.jwpaisley.helpers.TextHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import com.jwpaisley.models.Comment;
 import com.jwpaisley.models.CommentResourceType;
 import com.jwpaisley.services.DatabaseService;
@@ -32,8 +33,8 @@ public class CommentController {
             rs.getBoolean("is_reply"),
             rs.getObject("parent_comment", UUID.class),
             rs.getString("text"),
-            rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
-            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
 

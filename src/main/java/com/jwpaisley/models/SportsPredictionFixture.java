@@ -5,7 +5,8 @@ import java.util.UUID;
 public record SportsPredictionFixture(
     UUID id,
     int apiSportsFixtureId,
-    UUID leagueId,
+    int apiSportsLeagueId,
+    int apiSportsSeasonId,
     UUID homeTeamId,
     UUID awayTeamId,
     String commenceTime,

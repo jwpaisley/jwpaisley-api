@@ -5,6 +5,7 @@ com/jwpaisley/controllers/SportsPredictionPicksController.class
 com/jwpaisley/PingResponse.class
 com/jwpaisley/helpers/CacheHelper$CacheKey.class
 com/jwpaisley/models/PhotoCollection.class
+com/jwpaisley/helpers/CoinsHelper.class
 com/jwpaisley/helpers/CacheHelper.class
 com/jwpaisley/controllers/WheelOptionsController.class
 com/jwpaisley/models/SportsPredictionTeam.class
@@ -23,6 +24,7 @@ com/jwpaisley/helpers/AuthHelper.class
 com/jwpaisley/models/WeatherType.class
 com/jwpaisley/helpers/CacheHelper$CacheEntry.class
 com/jwpaisley/controllers/SportsPredictionTeamsController.class
+com/jwpaisley/helpers/TimeHelper.class
 com/jwpaisley/models/Sailboat.class
 com/jwpaisley/models/RecipeTag.class
 com/jwpaisley/models/SailingPortWithConditions.class

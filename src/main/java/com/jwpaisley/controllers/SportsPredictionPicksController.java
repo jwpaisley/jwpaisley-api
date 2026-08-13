@@ -1,6 +1,7 @@
 package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.AuthHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import com.jwpaisley.models.SportsPredictionPick;
 import com.jwpaisley.services.DatabaseService;
 import io.javalin.http.Context;
@@ -32,8 +33,8 @@ public class SportsPredictionPicksController {
             rs.getString("status"),
             rs.getInt("coins_awarded"),
             rs.getInt("points_awarded"),
-            rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
-            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
 

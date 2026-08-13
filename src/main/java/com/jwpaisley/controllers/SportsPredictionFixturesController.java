@@ -1,6 +1,7 @@
 package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.AuthHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import com.jwpaisley.models.SportsPredictionFixture;
 import com.jwpaisley.services.DatabaseService;
 import io.javalin.http.Context;
@@ -20,10 +21,11 @@ public class SportsPredictionFixturesController {
         return new SportsPredictionFixture(
             rs.getObject("id", UUID.class),
             rs.getInt("api_sports_fixture_id"),
-            rs.getObject("league_id", UUID.class),
+            rs.getInt("api_sports_league_id"),
+            rs.getInt("api_sports_season_id"),
             rs.getObject("home_team_id", UUID.class),
             rs.getObject("away_team_id", UUID.class),
-            rs.getTimestamp("commence_time") != null ? rs.getTimestamp("commence_time").toString() : null,
+            TimeHelper.toUtcIsoString(rs.getTimestamp("commence_time")),
             rs.getObject("home_odds", Double.class),
             rs.getObject("away_odds", Double.class),
             rs.getObject("draw_odds", Double.class),
@@ -31,8 +33,8 @@ public class SportsPredictionFixturesController {
             rs.getObject("home_score", Integer.class),
             rs.getObject("away_score", Integer.class),
             rs.getObject("winning_team_id", UUID.class),
-            rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
-            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
 
@@ -89,10 +91,10 @@ public class SportsPredictionFixturesController {
         SportsPredictionFixture newFixture = ctx.bodyAsClass(SportsPredictionFixture.class);
         String sql = """
             INSERT INTO sports_prediction_fixtures (
-                api_sports_fixture_id, league_id, home_team_id, away_team_id,
-                commence_time, home_odds, away_odds, draw_odds, status,
-                home_score, away_score, winning_team_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                api_sports_fixture_id, api_sports_league_id, api_sports_season_id,
+                home_team_id, away_team_id, commence_time, home_odds, away_odds,
+                draw_odds, status, home_score, away_score, winning_team_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *;
         """;
         DataSource ds = DatabaseService.getInstance().getDataSource();
@@ -101,17 +103,18 @@ public class SportsPredictionFixturesController {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, newFixture.apiSportsFixtureId());
-            pstmt.setObject(2, newFixture.leagueId());
-            pstmt.setObject(3, newFixture.homeTeamId());
-            pstmt.setObject(4, newFixture.awayTeamId());
-            pstmt.setTimestamp(5, newFixture.commenceTime() != null ? java.sql.Timestamp.valueOf(newFixture.commenceTime().replace("Z", ".000000")) : null);
-            pstmt.setObject(6, newFixture.homeOdds());
-            pstmt.setObject(7, newFixture.awayOdds());
-            pstmt.setObject(8, newFixture.drawOdds());
-            pstmt.setString(9, newFixture.status());
-            pstmt.setObject(10, newFixture.homeScore());
-            pstmt.setObject(11, newFixture.awayScore());
-            pstmt.setObject(12, newFixture.winningTeamId());
+            pstmt.setInt(2, newFixture.apiSportsLeagueId());
+            pstmt.setInt(3, newFixture.apiSportsSeasonId());
+            pstmt.setObject(4, newFixture.homeTeamId());
+            pstmt.setObject(5, newFixture.awayTeamId());
+            pstmt.setTimestamp(6, newFixture.commenceTime() != null ? java.sql.Timestamp.valueOf(newFixture.commenceTime().replace("Z", ".000000")) : null);
+            pstmt.setObject(7, newFixture.homeOdds());
+            pstmt.setObject(8, newFixture.awayOdds());
+            pstmt.setObject(9, newFixture.drawOdds());
+            pstmt.setString(10, newFixture.status());
+            pstmt.setObject(11, newFixture.homeScore());
+            pstmt.setObject(12, newFixture.awayScore());
+            pstmt.setObject(13, newFixture.winningTeamId());
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -133,9 +136,10 @@ public class SportsPredictionFixturesController {
         SportsPredictionFixture updatedFixture = ctx.bodyAsClass(SportsPredictionFixture.class);
         String sql = """
             UPDATE sports_prediction_fixtures SET
-                api_sports_fixture_id = ?, league_id = ?, home_team_id = ?, away_team_id = ?,
-                commence_time = ?, home_odds = ?, away_odds = ?, draw_odds = ?, status = ?,
-                home_score = ?, away_score = ?, winning_team_id = ?
+                api_sports_fixture_id = ?, api_sports_league_id = ?, api_sports_season_id = ?,
+                home_team_id = ?, away_team_id = ?, commence_time = ?, home_odds = ?,
+                away_odds = ?, draw_odds = ?, status = ?, home_score = ?, away_score = ?,
+                winning_team_id = ?
             WHERE id = ?::uuid
             RETURNING *;
         """;
@@ -145,18 +149,19 @@ public class SportsPredictionFixturesController {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, updatedFixture.apiSportsFixtureId());
-            pstmt.setObject(2, updatedFixture.leagueId());
-            pstmt.setObject(3, updatedFixture.homeTeamId());
-            pstmt.setObject(4, updatedFixture.awayTeamId());
-            pstmt.setTimestamp(5, updatedFixture.commenceTime() != null ? java.sql.Timestamp.valueOf(updatedFixture.commenceTime().replace("Z", ".000000")) : null);
-            pstmt.setObject(6, updatedFixture.homeOdds());
-            pstmt.setObject(7, updatedFixture.awayOdds());
-            pstmt.setObject(8, updatedFixture.drawOdds());
-            pstmt.setString(9, updatedFixture.status());
-            pstmt.setObject(10, updatedFixture.homeScore());
-            pstmt.setObject(11, updatedFixture.awayScore());
-            pstmt.setObject(12, updatedFixture.winningTeamId());
-            pstmt.setObject(13, id);
+            pstmt.setInt(2, updatedFixture.apiSportsLeagueId());
+            pstmt.setInt(3, updatedFixture.apiSportsSeasonId());
+            pstmt.setObject(4, updatedFixture.homeTeamId());
+            pstmt.setObject(5, updatedFixture.awayTeamId());
+            pstmt.setTimestamp(6, updatedFixture.commenceTime() != null ? java.sql.Timestamp.valueOf(updatedFixture.commenceTime().replace("Z", ".000000")) : null);
+            pstmt.setObject(7, updatedFixture.homeOdds());
+            pstmt.setObject(8, updatedFixture.awayOdds());
+            pstmt.setObject(9, updatedFixture.drawOdds());
+            pstmt.setString(10, updatedFixture.status());
+            pstmt.setObject(11, updatedFixture.homeScore());
+            pstmt.setObject(12, updatedFixture.awayScore());
+            pstmt.setObject(13, updatedFixture.winningTeamId());
+            pstmt.setObject(14, id);
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {

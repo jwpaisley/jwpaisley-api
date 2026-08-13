@@ -1,6 +1,7 @@
 package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.AuthHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import com.jwpaisley.models.RecipeTag;
 import com.jwpaisley.services.DatabaseService;
 import io.javalin.http.Context;
@@ -19,8 +20,8 @@ public class RecipeTagController {
             rs.getObject("id", UUID.class),
             rs.getString("name"),
             rs.getString("description"),
-            rs.getTimestamp("created_at").toString(),
-            rs.getTimestamp("updated_at").toString()
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
 

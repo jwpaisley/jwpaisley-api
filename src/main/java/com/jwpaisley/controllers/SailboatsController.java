@@ -1,6 +1,7 @@
 package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.AuthHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import com.jwpaisley.models.Sailboat;
 import com.jwpaisley.services.DatabaseService;
 import io.javalin.http.Context;
@@ -63,8 +64,8 @@ public class SailboatsController {
             rs.getBigDecimal("holding_tank_capacity_gal"),
             rs.getString("home_port"),
             normalizePrivateEnsignFlagUrl(rs.getString("private_ensign_flag_url")),
-            rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
-            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
 

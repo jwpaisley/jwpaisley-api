@@ -1,6 +1,7 @@
 package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.AuthHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import com.jwpaisley.models.SportsPredictionLeagueParticipant;
 import com.jwpaisley.services.DatabaseService;
 import io.javalin.http.Context;
@@ -24,7 +25,7 @@ public class SportsPredictionLeagueParticipantsController {
             rs.getObject("league_id", UUID.class),
             rs.getObject("user_id", UUID.class),
             rs.getInt("points"),
-            rs.getTimestamp("joined_at") != null ? rs.getTimestamp("joined_at").toString() : null
+            TimeHelper.toUtcIsoString(rs.getTimestamp("joined_at"))
         );
     }
 
@@ -57,7 +58,7 @@ public class SportsPredictionLeagueParticipantsController {
                     participant.put("leagueId", leagueId);
                     participant.put("userId", userId);
                     participant.put("points", rs.getInt("points"));
-                    participant.put("joinedAt", rs.getTimestamp("joined_at") != null ? rs.getTimestamp("joined_at").toString() : null);
+                    participant.put("joinedAt", TimeHelper.toUtcIsoString(rs.getTimestamp("joined_at")));
                     participant.put("firstName", firstName);
                     participant.put("lastName", lastName);
                     participant.put("profilePictureUrl", profilePictureUrl);

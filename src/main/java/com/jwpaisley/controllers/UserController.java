@@ -2,6 +2,7 @@ package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.AuthHelper;
 import com.jwpaisley.helpers.JwtHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import com.jwpaisley.models.User;
 import com.jwpaisley.services.DatabaseService;
 import com.jwpaisley.services.StorageService;
@@ -40,9 +41,9 @@ public class UserController {
             rs.getString("email_address"),
             rs.getString("profile_picture_url"),
             rs.getObject("coins", Integer.class),
-            rs.getTimestamp("last_login") != null ? rs.getTimestamp("last_login").toString() : null,
-            rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
-            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
+            TimeHelper.toUtcIsoString(rs.getTimestamp("last_login")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
 

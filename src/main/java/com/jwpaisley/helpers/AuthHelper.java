@@ -17,6 +17,9 @@ public class AuthHelper {
     private static final Set<String> ADMIN_EMAILS = Set.of(
         "jacobpaisley97@gmail.com"
     );
+    private static final Set<String> SERVICE_ACCOUNT_EMAILS = Set.of(
+        "scheduler-invoker@symbolic-card-237119.iam.gserviceaccount.com"
+    );
     private static final JwtHelper JWT_SERVICE = new JwtHelper(
         System.getenv().getOrDefault("JWT_SECRET", "dummy-secret-for-dev")
     );
@@ -25,7 +28,7 @@ public class AuthHelper {
             new NetHttpTransport(),
             new GsonFactory()
         )
-        .setAudience(Collections.singletonList(CLIENT_ID))
+        .setIssuer("https://accounts.google.com")
         .build();
 
     public static boolean validateOAuthToken(Context ctx) {
@@ -108,11 +111,6 @@ public class AuthHelper {
     }
 
     public static boolean isAdmin(Context ctx) {
-        Object adminFlag = ctx.attribute("isAdmin");
-        if (Boolean.TRUE.equals(adminFlag)) {
-            return true;
-        }
-
         String email = getCurrentUserEmail(ctx);
         if (email == null) {
             LoggingHelper.error("Email verification failed: No email found in token payload");
@@ -121,9 +119,24 @@ public class AuthHelper {
 
         boolean isAllowedAdmin = ADMIN_EMAILS.contains(email.toLowerCase(Locale.ROOT));
         if (!isAllowedAdmin) {
-            LoggingHelper.warning("Unauthorized access attempt by: " + email);
+            LoggingHelper.warning("Failed admin check by: " + email);
         }
 
         return isAllowedAdmin;
+    }
+
+    public static boolean isServiceAccount(Context ctx) {
+        String email = getCurrentUserEmail(ctx);
+        if (email == null) {
+            LoggingHelper.error("Email verification failed: No email found in token payload");
+            return false;
+        }
+
+        boolean isAllowedServiceAccount = SERVICE_ACCOUNT_EMAILS.contains(email.toLowerCase(Locale.ROOT));
+        if (!isAllowedServiceAccount) {
+            LoggingHelper.warning("Failed service account check by: " + email);
+        }
+
+        return isAllowedServiceAccount;
     }
 }

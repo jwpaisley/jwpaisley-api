@@ -1,6 +1,7 @@
 package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.AuthHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import com.jwpaisley.models.SportsPredictionTeam;
 import com.jwpaisley.services.DatabaseService;
 import io.javalin.http.Context;
@@ -23,8 +24,8 @@ public class SportsPredictionTeamsController {
             rs.getString("name"),
             rs.getString("code"),
             rs.getString("logo_url"),
-            rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
-            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
 

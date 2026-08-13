@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jwpaisley.helpers.ApiSportsHelper;
 import com.jwpaisley.helpers.AuthHelper;
 import com.jwpaisley.helpers.LoggingHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import com.jwpaisley.models.Sport;
 import com.jwpaisley.models.SportsPredictionLeague;
 import com.jwpaisley.services.DatabaseService;
@@ -43,10 +44,10 @@ public class SportsPredictionLeaguesController {
             rs.getInt("api_sports_league_id"),
             rs.getInt("api_sports_season_id"),
             rs.getString("league_image_url"),
-            rs.getTimestamp("league_start_date") != null ? rs.getTimestamp("league_start_date").toString() : null,
-            rs.getTimestamp("league_end_date") != null ? rs.getTimestamp("league_end_date").toString() : null,
-            rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
-            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
+            TimeHelper.toUtcIsoString(rs.getTimestamp("league_start_date")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("league_end_date")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
 

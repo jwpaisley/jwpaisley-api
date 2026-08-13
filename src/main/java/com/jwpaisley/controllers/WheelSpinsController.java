@@ -1,6 +1,8 @@
 package com.jwpaisley.controllers;
 
 import com.jwpaisley.helpers.AuthHelper;
+import com.jwpaisley.helpers.CoinsHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import com.jwpaisley.models.WheelOption;
 import com.jwpaisley.models.WheelSpin;
 import com.jwpaisley.services.DatabaseService;
@@ -27,8 +29,8 @@ public class WheelSpinsController {
             rs.getObject("id", UUID.class),
             rs.getObject("user_id", UUID.class),
             rs.getInt("outcome"),
-            rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
-            rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
 
@@ -227,23 +229,7 @@ public class WheelSpinsController {
                 }
             }
 
-            String currentBalanceSql = "SELECT coins FROM users WHERE id = ?::uuid";
-            try (PreparedStatement currentBalanceStmt = conn.prepareStatement(currentBalanceSql)) {
-                currentBalanceStmt.setObject(1, userId);
-                try (ResultSet rs = currentBalanceStmt.executeQuery()) {
-                    if (!rs.next()) {
-                        throw new NotFoundResponse("User not found");
-                    }
-                    newCoinBalance = rs.getInt("coins") + outcome;
-                }
-            }
-
-            String updateBalanceSql = "UPDATE users SET coins = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?::uuid";
-            try (PreparedStatement updateBalanceStmt = conn.prepareStatement(updateBalanceSql)) {
-                updateBalanceStmt.setInt(1, newCoinBalance);
-                updateBalanceStmt.setObject(2, userId);
-                updateBalanceStmt.executeUpdate();
-            }
+            newCoinBalance = CoinsHelper.addCoins(userId, outcome);
 
             conn.commit();
 
@@ -280,8 +266,8 @@ public class WheelSpinsController {
                     rs.getObject("id", UUID.class),
                     rs.getInt("value"),
                     rs.getBigDecimal("probability"),
-                    rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null,
-                    rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toString() : null
+                    TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+                    TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
                 ));
             }
         } catch (SQLException e) {
@@ -320,7 +306,7 @@ public class WheelSpinsController {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString() : null;
+                    return TimeHelper.toUtcIsoString(rs.getTimestamp("created_at"));
                 }
             }
         } catch (SQLException e) {
@@ -332,7 +318,7 @@ public class WheelSpinsController {
 
     private boolean isOlderThanOneDay(String timestamp) {
         try {
-            Instant lastSpinAt = Instant.parse(timestamp.replace(" ", "T"));
+            Instant lastSpinAt = Instant.parse(timestamp);
             return lastSpinAt.isBefore(Instant.now().minus(24, ChronoUnit.HOURS));
         } catch (Exception e) {
             return true;

@@ -4,6 +4,7 @@ import com.jwpaisley.services.DatabaseService;
 import com.jwpaisley.services.StorageService;
 import com.jwpaisley.models.Book;
 import com.jwpaisley.helpers.AuthHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import io.javalin.http.Context;
 import io.javalin.http.NotFoundResponse;
 import io.javalin.http.UploadedFile;
@@ -32,11 +33,11 @@ public class BooksController {
             rs.getInt("current_page"),
             rs.getInt("rating"),
             rs.getString("review"),
-            rs.getTimestamp("start_date") != null ? rs.getTimestamp("start_date").toString() : null,
-            rs.getTimestamp("finish_date") != null ? rs.getTimestamp("finish_date").toString() : null,
+            TimeHelper.toUtcIsoString(rs.getTimestamp("start_date")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("finish_date")),
 
-            rs.getTimestamp("created_at").toString(),
-            rs.getTimestamp("updated_at").toString()
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
     
@@ -120,8 +121,8 @@ public class BooksController {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     UUID generatedId = rs.getObject("id", UUID.class);
-                    String createdAt = rs.getTimestamp("created_at").toString();
-                    String updatedAt = rs.getTimestamp("updated_at").toString();
+                    String createdAt = TimeHelper.toUtcIsoString(rs.getTimestamp("created_at"));
+                    String updatedAt = TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"));
 
                     Book savedBook = new Book(
                         generatedId,

@@ -22,6 +22,7 @@
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/CommentResourceType.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/services/SailingPortConditionsService.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/SportsPredictionLeague.java
+/home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/helpers/CoinsHelper.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/helpers/LoggingHelper.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/SportsPredictionLeagueParticipant.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/helpers/JwtHelper.java
@@ -36,6 +37,7 @@
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/Book.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/PhotoController.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/Sport.java
+/home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/helpers/TimeHelper.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/WheelOption.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/SportsPredictionPicksController.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/RecipeTag.java

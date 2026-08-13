@@ -4,6 +4,7 @@ import com.jwpaisley.services.DatabaseService;
 import com.jwpaisley.models.Recipe;
 import com.jwpaisley.models.RecipeTag;
 import com.jwpaisley.helpers.AuthHelper;
+import com.jwpaisley.helpers.TimeHelper;
 import io.javalin.http.Context;
 import io.javalin.http.NotFoundResponse;
 import javax.sql.DataSource;
@@ -38,8 +39,8 @@ public class RecipeController {
             Arrays.asList((String[]) rs.getArray("mise_en_place_steps").getArray()),
             Arrays.asList((String[]) rs.getArray("instructions").getArray()),
             recipeTags,
-            rs.getTimestamp("created_at").toString(),
-            rs.getTimestamp("updated_at").toString()
+            TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
         );
     }
 
@@ -265,8 +266,8 @@ public class RecipeController {
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
                         UUID generatedId = rs.getObject("id", UUID.class);
-                        String createdAt = rs.getTimestamp("created_at").toString();
-                        String updatedAt = rs.getTimestamp("updated_at").toString();
+                        String createdAt = TimeHelper.toUtcIsoString(rs.getTimestamp("created_at"));
+                        String updatedAt = TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"));
 
                         syncRecipeTags(conn, generatedId, newRecipe.recipeTags());
                         conn.commit();
