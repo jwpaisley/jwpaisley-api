@@ -127,6 +127,7 @@ public class Main {
 
         SportsPredictionTeamsController sportsPredictionTeamsController = new SportsPredictionTeamsController();
         app.get("/api/sports-prediction-teams", sportsPredictionTeamsController::getAll);
+        app.get("/api/sports-prediction-teams/league/{leagueId}", sportsPredictionTeamsController::getForLeague);
         app.get("/api/sports-prediction-teams/{id}", sportsPredictionTeamsController::get);
         app.post("/api/sports-prediction-teams", sportsPredictionTeamsController::create);
         app.put("/api/sports-prediction-teams/{id}", sportsPredictionTeamsController::update);
@@ -144,7 +145,9 @@ public class Main {
 
         SportsPredictionFixturesController sportsPredictionFixturesController = new SportsPredictionFixturesController();
         app.get("/api/sports-prediction-fixtures", sportsPredictionFixturesController::getAll);
+        app.get("/api/sports-prediction-fixtures/league/{leagueId}", sportsPredictionFixturesController::getForLeague);
         app.get("/api/sports-prediction-fixtures/{id}", sportsPredictionFixturesController::get);
+        app.post("/api/sports-prediction-fixtures/sync-job", sportsPredictionFixturesController::syncJob);
         app.post("/api/sports-prediction-fixtures", sportsPredictionFixturesController::create);
         app.put("/api/sports-prediction-fixtures/{id}", sportsPredictionFixturesController::update);
         app.delete("/api/sports-prediction-fixtures/{id}", sportsPredictionFixturesController::delete);

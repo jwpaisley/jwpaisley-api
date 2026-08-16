@@ -6,6 +6,7 @@ com/jwpaisley/PingResponse.class
 com/jwpaisley/helpers/CacheHelper$CacheKey.class
 com/jwpaisley/models/PhotoCollection.class
 com/jwpaisley/helpers/CoinsHelper.class
+com/jwpaisley/controllers/SportsPredictionFixturesController$SyncResult.class
 com/jwpaisley/helpers/CacheHelper.class
 com/jwpaisley/controllers/WheelOptionsController.class
 com/jwpaisley/models/SportsPredictionTeam.class
@@ -31,6 +32,7 @@ com/jwpaisley/models/SailingPortWithConditions.class
 com/jwpaisley/models/WheelSpin.class
 com/jwpaisley/models/SailboatPhoto.class
 com/jwpaisley/helpers/LoggingHelper$LogLevel.class
+com/jwpaisley/controllers/SportsPredictionFixturesController$LeagueSyncTarget.class
 com/jwpaisley/models/SailingPortConditions.class
 com/jwpaisley/controllers/SailboatsController.class
 com/jwpaisley/controllers/SailingPortsController.class
@@ -46,6 +48,7 @@ com/jwpaisley/models/Recipe.class
 com/jwpaisley/controllers/WheelSpinsController.class
 com/jwpaisley/controllers/RecipeController.class
 com/jwpaisley/helpers/JwtHelper.class
+com/jwpaisley/controllers/SportsPredictionFixturesController$FixtureScope.class
 com/jwpaisley/controllers/SportsPredictionFixturesController.class
 com/jwpaisley/models/SportsPredictionLeague.class
 com/jwpaisley/controllers/RecipeTagController.class

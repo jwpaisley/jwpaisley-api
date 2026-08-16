@@ -52,6 +52,65 @@ public class SportsPredictionTeamsController {
         }
     }
 
+    private int[] fetchApiLeagueAndSeasonByLeagueId(UUID leagueId) throws SQLException {
+        String sql = "SELECT api_sports_league_id, api_sports_season_id FROM sports_prediction_leagues WHERE id = ?::uuid";
+        DataSource ds = DatabaseService.getInstance().getDataSource();
+
+        try (Connection conn = ds.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setObject(1, leagueId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new NotFoundResponse("Sports prediction league not found");
+                }
+
+                return new int[] { rs.getInt("api_sports_league_id"), rs.getInt("api_sports_season_id") };
+            }
+        }
+    }
+
+    public void getForLeague(Context ctx) {
+        UUID leagueId = UUID.fromString(ctx.pathParam("leagueId"));
+        List<SportsPredictionTeam> teams = new ArrayList<>();
+
+        String sql = """
+            SELECT DISTINCT t.*
+            FROM sports_prediction_teams t
+            INNER JOIN sports_prediction_fixtures f
+                ON t.id = f.home_team_id
+                OR t.id = f.away_team_id
+                OR t.id = f.winning_team_id
+            WHERE f.api_sports_league_id = ?
+              AND f.api_sports_season_id = ?
+            ORDER BY t.name ASC
+        """;
+
+        DataSource ds = DatabaseService.getInstance().getDataSource();
+
+        try {
+            int[] leagueInfo = fetchApiLeagueAndSeasonByLeagueId(leagueId);
+
+            try (Connection conn = ds.getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                pstmt.setInt(1, leagueInfo[0]);
+                pstmt.setInt(2, leagueInfo[1]);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        teams.add(sportsPredictionTeamFromResultSet(rs));
+                    }
+                }
+            }
+
+            ctx.json(teams);
+        } catch (SQLException e) {
+            handleError(ctx, e);
+        }
+    }
+
     public void get(Context ctx) {
         UUID id = UUID.fromString(ctx.pathParam("id"));
         String sql = "SELECT * FROM sports_prediction_teams WHERE id = ?::uuid";
