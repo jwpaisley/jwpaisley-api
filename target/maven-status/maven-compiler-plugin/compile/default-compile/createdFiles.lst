@@ -8,6 +8,7 @@ com/jwpaisley/models/PhotoCollection.class
 com/jwpaisley/helpers/CoinsHelper.class
 com/jwpaisley/controllers/SportsPredictionFixturesController$SyncResult.class
 com/jwpaisley/helpers/CacheHelper.class
+com/jwpaisley/controllers/SportsPredictionPicksController$PendingFixtureSettlement.class
 com/jwpaisley/controllers/WheelOptionsController.class
 com/jwpaisley/models/SportsPredictionTeam.class
 com/jwpaisley/models/Photo.class

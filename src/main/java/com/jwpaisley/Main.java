@@ -162,8 +162,12 @@ public class Main {
 
         SportsPredictionPicksController sportsPredictionPicksController = new SportsPredictionPicksController();
         app.get("/api/sports-prediction-picks", sportsPredictionPicksController::getAll);
+        app.get("/api/sports-prediction-picks/league/{leagueId}/recent", sportsPredictionPicksController::getRecentForLeague);
+        app.get("/api/sports-prediction-picks/league/{leagueId}/mine", sportsPredictionPicksController::getMyPicksForLeague);
+        app.get("/api/sports-prediction-picks/league/{leagueId}/fixture/{fixtureId}/mine", sportsPredictionPicksController::getMyPickForLeagueFixture);
         app.get("/api/sports-prediction-picks/league/{leagueId}/totals", sportsPredictionPicksController::getLeagueUserTotals);
         app.get("/api/sports-prediction-picks/{id}", sportsPredictionPicksController::get);
+        app.post("/api/sports-prediction-picks/settle-job", sportsPredictionPicksController::settleJob);
         app.post("/api/sports-prediction-picks", sportsPredictionPicksController::create);
         app.put("/api/sports-prediction-picks/{id}", sportsPredictionPicksController::update);
         app.delete("/api/sports-prediction-picks/{id}", sportsPredictionPicksController::delete);

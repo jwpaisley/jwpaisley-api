@@ -83,6 +83,20 @@ public class SportsPredictionFixturesController {
         }
     }
 
+    private int parsePage(Context ctx) {
+        String rawPage = ctx.queryParam("page");
+        if (rawPage == null || rawPage.isBlank()) {
+            return 0;
+        }
+
+        try {
+            return Math.max(0, Integer.parseInt(rawPage.trim()));
+        } catch (NumberFormatException e) {
+            ctx.status(400).result("Invalid page. Expected a non-negative integer.");
+            return -1;
+        }
+    }
+
     private int[] fetchApiLeagueAndSeasonByLeagueId(UUID leagueId) throws SQLException {
         String sql = "SELECT api_sports_league_id, api_sports_season_id FROM sports_prediction_leagues WHERE id = ?::uuid";
         DataSource ds = DatabaseService.getInstance().getDataSource();
@@ -120,66 +134,80 @@ public class SportsPredictionFixturesController {
         }
     }
 
-        public void getForLeague(Context ctx) {
-                UUID leagueId = UUID.fromString(ctx.pathParam("leagueId"));
-                FixtureScope scope = parseScope(ctx);
-                if (scope == null) {
-                        return;
-                }
-
-                List<SportsPredictionFixture> fixtures = new ArrayList<>();
-
-                String sql = """
-                        SELECT *
-                        FROM sports_prediction_fixtures
-                        WHERE api_sports_league_id = ?
-                            AND api_sports_season_id = ?
-                            AND (
-                                ? = 'ALL'
-                                OR (
-                                    ? = 'PAST'
-                                    AND (
-                                        (commence_time IS NOT NULL AND commence_time < CURRENT_TIMESTAMP)
-                                        OR status IN ('IN_PROGRESS', 'FINISHED')
-                                    )
-                                )
-                                OR (
-                                    ? = 'UPCOMING'
-                                    AND (
-                                        (commence_time IS NULL OR commence_time >= CURRENT_TIMESTAMP)
-                                        AND COALESCE(status, '') NOT IN ('IN_PROGRESS', 'FINISHED')
-                                    )
-                                )
-                            )
-                        ORDER BY commence_time ASC NULLS LAST
-                """;
-
-                DataSource ds = DatabaseService.getInstance().getDataSource();
-
-                try {
-                        int[] leagueInfo = fetchApiLeagueAndSeasonByLeagueId(leagueId);
-
-                        try (Connection conn = ds.getConnection();
-                                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-                                pstmt.setInt(1, leagueInfo[0]);
-                                pstmt.setInt(2, leagueInfo[1]);
-                                pstmt.setString(3, scope.name());
-                                pstmt.setString(4, scope.name());
-                                pstmt.setString(5, scope.name());
-
-                                try (ResultSet rs = pstmt.executeQuery()) {
-                                        while (rs.next()) {
-                                                fixtures.add(sportsPredictionFixtureFromResultSet(rs));
-                                        }
-                                }
-                        }
-
-                        ctx.json(fixtures);
-                } catch (SQLException e) {
-                        handleError(ctx, e);
-                }
+    public void getForLeague(Context ctx) {
+        UUID leagueId = UUID.fromString(ctx.pathParam("leagueId"));
+        FixtureScope scope = parseScope(ctx);
+        if (scope == null) {
+            return;
         }
+
+        int page = parsePage(ctx);
+        if (page < 0) {
+            return;
+        }
+
+        int pageSize = 10;
+        int offset = page * pageSize;
+
+        List<SportsPredictionFixture> fixtures = new ArrayList<>();
+        String sql = """
+            SELECT *
+            FROM sports_prediction_fixtures
+            WHERE api_sports_league_id = ?
+              AND api_sports_season_id = ?
+              AND (
+                ? = 'ALL'
+                OR (
+                    ? = 'PAST'
+                    AND (
+                        (commence_time IS NOT NULL AND commence_time < CURRENT_TIMESTAMP)
+                        OR status IN ('IN_PROGRESS', 'FINISHED')
+                    )
+                )
+                OR (
+                    ? = 'UPCOMING'
+                    AND (
+                        (commence_time IS NULL OR commence_time >= CURRENT_TIMESTAMP)
+                        AND COALESCE(status, '') NOT IN ('IN_PROGRESS', 'FINISHED')
+                        AND home_odds IS NOT NULL
+                        AND draw_odds IS NOT NULL
+                        AND away_odds IS NOT NULL
+                    )
+                )
+              )
+            ORDER BY commence_time ASC NULLS LAST
+            LIMIT ?
+            OFFSET ?
+        """;
+
+        DataSource ds = DatabaseService.getInstance().getDataSource();
+
+        try {
+            int[] leagueInfo = fetchApiLeagueAndSeasonByLeagueId(leagueId);
+
+            try (Connection conn = ds.getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                pstmt.setInt(1, leagueInfo[0]);
+                pstmt.setInt(2, leagueInfo[1]);
+                pstmt.setString(3, scope.name());
+                pstmt.setString(4, scope.name());
+                pstmt.setString(5, scope.name());
+                pstmt.setInt(6, pageSize);
+                pstmt.setInt(7, offset);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        fixtures.add(sportsPredictionFixtureFromResultSet(rs));
+                    }
+                }
+            }
+
+            ctx.json(fixtures);
+        } catch (SQLException e) {
+            handleError(ctx, e);
+        }
+    }
 
     public void get(Context ctx) {
         UUID id = UUID.fromString(ctx.pathParam("id"));
