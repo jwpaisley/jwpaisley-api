@@ -17,6 +17,7 @@
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/PhotoCollectionController.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/SailboatPhotosController.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/controllers/SportsPredictionTeamsController.java
+/home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/SailingPortConditionHistory.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/helpers/TextHelper.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/SailboatPhoto.java
 /home/jwpaisley/projects/jwpaisley-api/src/main/java/com/jwpaisley/models/CommentResourceType.java

@@ -3,6 +3,7 @@ package com.jwpaisley.controllers;
 import com.jwpaisley.helpers.LoggingHelper;
 import com.jwpaisley.helpers.AuthHelper;
 import com.jwpaisley.helpers.TimeHelper;
+import com.jwpaisley.models.SailingPortConditionHistory;
 import com.jwpaisley.models.SailingPort;
 import com.jwpaisley.models.SailingPortConditions;
 import com.jwpaisley.models.SailingPortWithConditions;
@@ -17,19 +18,17 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.time.Instant;
 
 public class SailingPortsController {
     private final SailingPortConditionsService conditionsService = SailingPortConditionsService.getInstance();
+    private record RefreshSummary(int attempted, int refreshed, int failed) {}
 
     public SailingPortsController() {
-        startPollingLoop();
     }
 
     public static SailingPort sailingPortFromResultSet(ResultSet rs) throws SQLException {
@@ -38,15 +37,31 @@ public class SailingPortsController {
             rs.getString("name"),
             rs.getBigDecimal("latitude"),
             rs.getBigDecimal("longitude"),
-            rs.getString("tide_station_id"),
-            rs.getString("current_station_id"),
-            rs.getString("buoy_station_id"),
-            rs.getString("observation_station_id"),
-            rs.getString("nws_office"),
-            rs.getObject("nws_grid_x", Integer.class),
-            rs.getObject("nws_grid_y", Integer.class),
             TimeHelper.toUtcIsoString(rs.getTimestamp("created_at")),
             TimeHelper.toUtcIsoString(rs.getTimestamp("updated_at"))
+        );
+    }
+
+    private SailingPortConditionHistory sailingPortConditionHistoryFromResultSet(ResultSet rs) throws SQLException {
+        return new SailingPortConditionHistory(
+            rs.getObject("id", UUID.class),
+            rs.getObject("sailing_port_id", UUID.class),
+            rs.getObject("wind_speed", Double.class),
+            rs.getObject("wind_direction", Double.class),
+            rs.getObject("gust_speed", Double.class),
+            rs.getObject("current_speed", Double.class),
+            rs.getObject("current_direction", Double.class),
+            rs.getObject("wave_height", Double.class),
+            rs.getObject("wave_period", Double.class),
+            rs.getObject("water_temperature", Double.class),
+            rs.getObject("air_temperature", Double.class),
+            rs.getObject("cloud_cover", Double.class),
+            rs.getObject("precipitation", Double.class),
+            rs.getObject("visibility", Double.class),
+            rs.getString("weather"),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("forecast_time")),
+            TimeHelper.toUtcIsoString(rs.getTimestamp("fetched_at")),
+            rs.getString("raw_response")
         );
     }
 
@@ -55,45 +70,7 @@ public class SailingPortsController {
         ctx.status(500).result("Error accessing sailing ports");
     }
 
-    private void startPollingLoop() {
-        Thread pollingThread = new Thread(() -> {
-            while (true) {
-                try {
-                    refreshAllConditions();
-                } catch (Exception e) {
-                    LoggingHelper.error("Sailing port polling failed: " + e.getMessage());
-                }
-
-                try {
-                    Thread.sleep(getSleepMillisUntilNextQuarterHour());
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-        }, "sailing-port-poller");
-        pollingThread.setDaemon(true);
-        pollingThread.start();
-    }
-
-    private long getSleepMillisUntilNextQuarterHour() {
-        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-        int minute = now.getMinute();
-        int nextMinute = minute < 15 ? 15 : minute < 30 ? 30 : minute < 45 ? 45 : 0;
-        LocalDateTime nextTick = now.withSecond(0).withNano(0);
-
-        if (nextMinute == 0) {
-            nextTick = nextTick.plusHours(1).withMinute(0).withSecond(0).withNano(0);
-        } else {
-            nextTick = nextTick.withMinute(nextMinute).withSecond(0).withNano(0);
-        }
-
-        Instant nowInstant = Instant.now();
-        Instant nextInstant = nextTick.toInstant(ZoneOffset.UTC);
-        return Duration.between(nowInstant, nextInstant).toMillis();
-    }
-
-    private void refreshAllConditions() {
+    private List<SailingPort> fetchAllPorts() throws SQLException {
         List<SailingPort> ports = new ArrayList<>();
         String sql = "SELECT * FROM public.sailing_ports ORDER BY name ASC";
         DataSource ds = DatabaseService.getInstance().getDataSource();
@@ -104,14 +81,35 @@ public class SailingPortsController {
             while (rs.next()) {
                 ports.add(sailingPortFromResultSet(rs));
             }
-        } catch (SQLException e) {
-            LoggingHelper.error("Unable to refresh sailing port conditions: " + e.getMessage());
-            return;
         }
 
+        return ports;
+    }
+
+    private RefreshSummary refreshAllConditions() throws SQLException {
+        List<SailingPort> ports = fetchAllPorts();
+        int refreshedCount = 0;
+        int failedCount = 0;
+
+        LoggingHelper.info("Sailing conditions job discovered " + ports.size() + " port(s) to refresh");
+
         for (SailingPort port : ports) {
-            conditionsService.refreshConditions(port);
+            try {
+                SailingPortConditions refreshed = conditionsService.refreshConditions(port);
+                if (refreshed != null) {
+                    refreshedCount++;
+                    LoggingHelper.debug("Sailing conditions refreshed for port " + port.name() + " (" + port.id() + ")");
+                } else {
+                    failedCount++;
+                    LoggingHelper.warning("Sailing conditions refresh returned null for port " + port.name() + " (" + port.id() + ")");
+                }
+            } catch (Exception e) {
+                failedCount++;
+                LoggingHelper.error("Sailing conditions refresh failed for port " + port.name() + " (" + port.id() + "): " + e.getMessage());
+            }
         }
+
+        return new RefreshSummary(ports.size(), refreshedCount, failedCount);
     }
 
     private SailingPortWithConditions hydrateWithConditions(SailingPort port) {
@@ -121,15 +119,9 @@ public class SailingPortsController {
 
     public void getAll(Context ctx) {
         List<SailingPortWithConditions> ports = new ArrayList<>();
-        String sql = "SELECT * FROM public.sailing_ports ORDER BY name ASC";
-        DataSource ds = DatabaseService.getInstance().getDataSource();
-
-        try (Connection conn = ds.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-
-            while (rs.next()) {
-                ports.add(hydrateWithConditions(sailingPortFromResultSet(rs)));
+        try {
+            for (SailingPort port : fetchAllPorts()) {
+                ports.add(hydrateWithConditions(port));
             }
             ctx.json(ports);
         } catch (SQLException e) {
@@ -158,6 +150,74 @@ public class SailingPortsController {
         }
     }
 
+    public void getHistory(Context ctx) {
+        UUID portId = UUID.fromString(ctx.pathParam("id"));
+        int limit = 96;
+        String rawLimit = ctx.queryParam("limit");
+        if (rawLimit != null && !rawLimit.isBlank()) {
+            try {
+                limit = Math.max(1, Math.min(500, Integer.parseInt(rawLimit)));
+            } catch (NumberFormatException e) {
+                ctx.status(400).result("Invalid limit query parameter");
+                return;
+            }
+        }
+
+        String sql = """
+            SELECT *
+            FROM public.sailing_port_condition_history
+            WHERE sailing_port_id = ?::uuid
+            ORDER BY fetched_at DESC
+            LIMIT ?
+        """;
+
+        DataSource ds = DatabaseService.getInstance().getDataSource();
+        List<SailingPortConditionHistory> history = new ArrayList<>();
+
+        try (Connection conn = ds.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setObject(1, portId);
+            pstmt.setInt(2, limit);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    history.add(sailingPortConditionHistoryFromResultSet(rs));
+                }
+            }
+            ctx.json(history);
+        } catch (SQLException e) {
+            handleError(ctx, e);
+        }
+    }
+
+    public void fetchConditionsJob(Context ctx) {
+        if (!AuthHelper.validateOAuthToken(ctx) || !(AuthHelper.isServiceAccount(ctx) || AuthHelper.isAdmin(ctx))) {
+            ctx.status(401).result("Unauthorized");
+            return;
+        }
+
+        String runId = UUID.randomUUID().toString();
+        String requestor = AuthHelper.getCurrentUserEmail(ctx);
+        Instant startAt = Instant.now();
+
+        LoggingHelper.info("Starting sailing conditions fetch job runId=" + runId + ", requestedBy=" + requestor + ", at=" + startAt);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                RefreshSummary summary = refreshAllConditions();
+                LoggingHelper.success(
+                    "Completed sailing conditions fetch job runId=" + runId
+                        + ", attempted=" + summary.attempted()
+                        + ", refreshed=" + summary.refreshed()
+                        + ", failed=" + summary.failed()
+                );
+            } catch (Exception e) {
+                LoggingHelper.error("Sailing conditions fetch job failed runId=" + runId + ": " + e.getMessage());
+            }
+        });
+
+        ctx.status(200).result("Sailing conditions fetch job started: " + runId);
+    }
+
     public void create(Context ctx) {
         if (!AuthHelper.validateOAuthToken(ctx) || !AuthHelper.isAdmin(ctx)) {
             ctx.status(401).result("Unauthorized");
@@ -169,10 +229,9 @@ public class SailingPortsController {
 
         String sql = """
             INSERT INTO public.sailing_ports (
-                name, latitude, longitude, tide_station_id, current_station_id,
-                buoy_station_id, observation_station_id, nws_office, nws_grid_x, nws_grid_y
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            RETURNING *;
+                name, latitude, longitude
+            ) VALUES (?, ?, ?)
+            RETURNING id, name, latitude, longitude, created_at, updated_at;
         """;
 
         try (Connection conn = ds.getConnection();
@@ -181,13 +240,6 @@ public class SailingPortsController {
             pstmt.setString(1, newPort.name());
             pstmt.setBigDecimal(2, newPort.latitude());
             pstmt.setBigDecimal(3, newPort.longitude());
-            pstmt.setString(4, newPort.tideStationId());
-            pstmt.setString(5, newPort.currentStationId());
-            pstmt.setString(6, newPort.buoyStationId());
-            pstmt.setString(7, newPort.observationStationId());
-            pstmt.setString(8, newPort.nwsOffice());
-            pstmt.setObject(9, newPort.nwsGridX());
-            pstmt.setObject(10, newPort.nwsGridY());
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -210,9 +262,7 @@ public class SailingPortsController {
 
         String sql = """
             UPDATE public.sailing_ports SET
-                name = ?, latitude = ?, longitude = ?, tide_station_id = ?,
-                current_station_id = ?, buoy_station_id = ?, observation_station_id = ?,
-                nws_office = ?, nws_grid_x = ?, nws_grid_y = ?
+                name = ?, latitude = ?, longitude = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?::uuid
         """;
 
@@ -222,14 +272,7 @@ public class SailingPortsController {
             pstmt.setString(1, updatedPort.name());
             pstmt.setBigDecimal(2, updatedPort.latitude());
             pstmt.setBigDecimal(3, updatedPort.longitude());
-            pstmt.setString(4, updatedPort.tideStationId());
-            pstmt.setString(5, updatedPort.currentStationId());
-            pstmt.setString(6, updatedPort.buoyStationId());
-            pstmt.setString(7, updatedPort.observationStationId());
-            pstmt.setString(8, updatedPort.nwsOffice());
-            pstmt.setObject(9, updatedPort.nwsGridX());
-            pstmt.setObject(10, updatedPort.nwsGridY());
-            pstmt.setObject(11, updatedPort.id());
+            pstmt.setObject(4, updatedPort.id());
 
             int rowsUpdated = pstmt.executeUpdate();
 
@@ -250,12 +293,16 @@ public class SailingPortsController {
         }
 
         UUID id = UUID.fromString(ctx.pathParam("id"));
+        String deleteHistorySql = "DELETE FROM public.sailing_port_condition_history WHERE sailing_port_id = ?::uuid";
         String sql = "DELETE FROM public.sailing_ports WHERE id = ?::uuid";
         DataSource ds = DatabaseService.getInstance().getDataSource();
 
         try (Connection conn = ds.getConnection();
+             PreparedStatement deleteHistoryStmt = conn.prepareStatement(deleteHistorySql);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
+            deleteHistoryStmt.setObject(1, id);
+            deleteHistoryStmt.executeUpdate();
             pstmt.setObject(1, id);
             int rowsDeleted = pstmt.executeUpdate();
 

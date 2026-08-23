@@ -353,14 +353,40 @@ public class UserController {
 
     private Map<String, String> decodeGoogleCredential(String credential) {
         try {
-            String[] parts = credential.split("\\.");
+            String normalizedCredential = credential == null ? null : credential.trim();
+            if (normalizedCredential == null || normalizedCredential.isBlank()) {
+                return null;
+            }
+
+            if (normalizedCredential.startsWith("Bearer ")) {
+                normalizedCredential = normalizedCredential.substring("Bearer ".length()).trim();
+            }
+
+            if ((normalizedCredential.startsWith("\"") && normalizedCredential.endsWith("\""))
+                || (normalizedCredential.startsWith("'") && normalizedCredential.endsWith("'"))) {
+                normalizedCredential = normalizedCredential.substring(1, normalizedCredential.length() - 1);
+            }
+
+            // Some clients submit credentials URL-encoded; decode first so JWT parsing is stable.
+            normalizedCredential = java.net.URLDecoder.decode(normalizedCredential, java.nio.charset.StandardCharsets.UTF_8);
+
+            String[] parts = normalizedCredential.split("\\.");
             if (parts.length < 2) {
                 return null;
             }
 
-            String payload = parts[1];
-            String padded = payload + "=".repeat(4 - (payload.length() % 4) % 4);
-            String decoded = new String(java.util.Base64.getUrlDecoder().decode(padded), java.nio.charset.StandardCharsets.UTF_8);
+            String payload = parts[1].trim().replace(' ', '+');
+            int remainder = payload.length() % 4;
+            String padded = remainder == 0 ? payload : payload + "=".repeat(4 - remainder);
+
+            byte[] decodedPayloadBytes;
+            try {
+                decodedPayloadBytes = java.util.Base64.getUrlDecoder().decode(padded);
+            } catch (IllegalArgumentException ignored) {
+                decodedPayloadBytes = java.util.Base64.getDecoder().decode(padded);
+            }
+
+            String decoded = new String(decodedPayloadBytes, java.nio.charset.StandardCharsets.UTF_8);
             Map<String, Object> parsed = new com.fasterxml.jackson.databind.ObjectMapper().readValue(decoded, Map.class);
 
             Map<String, String> profile = new HashMap<>();

@@ -570,6 +570,7 @@ public class SportsPredictionPicksController {
     public void getRecentForLeague(Context ctx) {
         UUID leagueId = UUID.fromString(ctx.pathParam("leagueId"));
         int page = 0;
+        int pageSize = 20;
 
         try {
             String pageParam = ctx.queryParam("page");
@@ -580,7 +581,15 @@ public class SportsPredictionPicksController {
             page = 0;
         }
 
-        int pageSize = 20;
+        try {
+            String pageSizeParam = ctx.queryParam("pageSize");
+            if (pageSizeParam != null) {
+                pageSize = Math.max(Integer.parseInt(pageSizeParam), 1);
+            }
+        } catch (NumberFormatException ignored) {
+            pageSize = 20;
+        }
+
         int offset = page * pageSize;
 
         List<SportsPredictionPick> picks = new ArrayList<>();

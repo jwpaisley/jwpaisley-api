@@ -105,6 +105,8 @@ public class Main {
         SailingPortsController sailingPortsController = new SailingPortsController();
         app.get("/api/sailing-ports", sailingPortsController::getAll);
         app.get("/api/sailing-ports/{id}", sailingPortsController::get);
+        app.get("/api/sailing-ports/{id}/conditions-history", sailingPortsController::getHistory);
+        app.post("/api/sailing-ports/fetch-conditions-job", sailingPortsController::fetchConditionsJob);
         app.post("/api/sailing-ports", sailingPortsController::create);
         app.put("/api/sailing-ports/{id}", sailingPortsController::update);
         app.delete("/api/sailing-ports/{id}", sailingPortsController::delete);

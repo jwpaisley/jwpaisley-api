@@ -1,6 +1,10 @@
 package com.jwpaisley.models;
 
-public record SailingPortConditions(
+import java.util.UUID;
+
+public record SailingPortConditionHistory(
+    UUID id,
+    UUID sailingPortId,
     Double windSpeed,
     Double windDirection,
     Double gustSpeed,
@@ -13,7 +17,8 @@ public record SailingPortConditions(
     Double cloudCover,
     Double precipitation,
     Double visibility,
-    WeatherType weather,
+    String weather,
     String forecastTime,
-    String fetchedAt
+    String fetchedAt,
+    String rawResponse
 ) {}
