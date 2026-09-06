@@ -2,7 +2,7 @@ CREATE TABLE comments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
     resource_id UUID NOT NULL,
-    type TEXT NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('PHOTO', 'PHOTO_COLLECTION', 'RECIPE', 'POST')),
     is_reply BOOLEAN NOT NULL DEFAULT FALSE,
     parent_comment UUID,
     text TEXT NOT NULL,

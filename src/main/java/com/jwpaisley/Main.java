@@ -7,6 +7,7 @@ import com.jwpaisley.controllers.BooksController;
 import com.jwpaisley.controllers.CommentController;
 import com.jwpaisley.controllers.PhotoCollectionController;
 import com.jwpaisley.controllers.PhotoController;
+import com.jwpaisley.controllers.PostsController;
 import com.jwpaisley.controllers.RecipeController;
 import com.jwpaisley.controllers.RecipeTagController;
 import com.jwpaisley.controllers.SailingPortsController;
@@ -66,6 +67,15 @@ public class Main {
         app.put("/api/photos/{id}", photoController::update);
         app.delete("/api/photos/{id}", photoController::delete);
         app.post("/api/photos/upload", photoController::uploadPhoto);
+
+        // POSTS ROUTES
+        PostsController postsController = new PostsController();
+        app.get("/api/posts", postsController::getAll);
+        app.get("/api/posts/{id}", postsController::get);
+        app.post("/api/posts", postsController::create);
+        app.post("/api/posts/upload-media", postsController::uploadMedia);
+        app.put("/api/posts/{id}", postsController::update);
+        app.delete("/api/posts/{id}", postsController::delete);
 
         // AUTH / USER ROUTES
         UserController userController = new UserController();

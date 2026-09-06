@@ -5,6 +5,7 @@ com/jwpaisley/controllers/SportsPredictionPicksController.class
 com/jwpaisley/PingResponse.class
 com/jwpaisley/helpers/CacheHelper$CacheKey.class
 com/jwpaisley/models/PhotoCollection.class
+com/jwpaisley/controllers/PostsController.class
 com/jwpaisley/helpers/CoinsHelper.class
 com/jwpaisley/controllers/SportsPredictionFixturesController$SyncResult.class
 com/jwpaisley/helpers/CacheHelper.class
@@ -15,6 +16,7 @@ com/jwpaisley/models/Photo.class
 com/jwpaisley/controllers/SportsPredictionLeaguesController.class
 com/jwpaisley/models/Book.class
 com/jwpaisley/models/Sport.class
+com/jwpaisley/models/Post$PostType.class
 com/jwpaisley/controllers/BooksController.class
 com/jwpaisley/models/SailingPortConditionHistory.class
 com/jwpaisley/controllers/PhotoController.class
@@ -26,6 +28,7 @@ com/jwpaisley/models/SportsPredictionLeagueParticipant.class
 com/jwpaisley/helpers/AuthHelper.class
 com/jwpaisley/models/WeatherType.class
 com/jwpaisley/helpers/CacheHelper$CacheEntry.class
+com/jwpaisley/models/Post$PostStatus.class
 com/jwpaisley/controllers/SportsPredictionTeamsController.class
 com/jwpaisley/helpers/TimeHelper.class
 com/jwpaisley/models/Sailboat.class
@@ -50,6 +53,7 @@ com/jwpaisley/models/Recipe.class
 com/jwpaisley/controllers/WheelSpinsController.class
 com/jwpaisley/controllers/RecipeController.class
 com/jwpaisley/helpers/JwtHelper.class
+com/jwpaisley/models/Post.class
 com/jwpaisley/controllers/SportsPredictionFixturesController$FixtureScope.class
 com/jwpaisley/controllers/SportsPredictionFixturesController.class
 com/jwpaisley/services/SailingPortConditionsService$FetchResult.class
