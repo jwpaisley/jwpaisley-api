@@ -68,6 +68,10 @@ public class PostsController {
         return Math.max(1, (int) Math.ceil(wordCount / 200.0));
     }
 
+    static boolean shouldIncrementViewCount(boolean isAdmin) {
+        return !isAdmin;
+    }
+
     private void handleError(Context ctx, Exception e) {
         System.err.println("Database Error: " + e.getMessage());
         ctx.status(500).result("Error accessing posts");
@@ -211,11 +215,15 @@ public class PostsController {
                 }
             }
 
-            try (PreparedStatement incrementStmt = conn.prepareStatement(incrementSql)) {
-                incrementStmt.setObject(1, id);
-                int rowsUpdated = incrementStmt.executeUpdate();
-                if (rowsUpdated == 0) {
-                    throw new NotFoundResponse("Post not found");
+            boolean isAuthenticated = AuthHelper.validateOAuthToken(ctx);
+            boolean isAdmin = isAuthenticated && AuthHelper.isAdmin(ctx);
+            if (shouldIncrementViewCount(isAdmin)) {
+                try (PreparedStatement incrementStmt = conn.prepareStatement(incrementSql)) {
+                    incrementStmt.setObject(1, id);
+                    int rowsUpdated = incrementStmt.executeUpdate();
+                    if (rowsUpdated == 0) {
+                        throw new NotFoundResponse("Post not found");
+                    }
                 }
             }
 
